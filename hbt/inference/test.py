@@ -16,17 +16,18 @@ def test(self):
 
     self.add_category(
         "cat1",
-        category="1e",
-        variable="ht",
+        config_category="incl",
+        config_variable="ht",
+        config_data_datasets=["data_mu_b"],
         mc_stats=True,
-        data_datasets=["data_mu_a"],
     )
     self.add_category(
         "cat2",
-        category="1mu",
-        variable="muon1_pt",
+        config_category="2j",
+        config_variable="jet1_pt",
+        # fake data from TT
+        data_from_processes=["TT"],
         mc_stats=True,
-        data_datasets=["data_mu_a"],
     )
 
     #
@@ -34,16 +35,15 @@ def test(self):
     #
 
     self.add_process(
-        "ST",
-        process="st_tchannel",
-        signal=True,
-        mc_datasets=["st_tchannel_t", "st_tchannel_tbar"],
+        "HH",
+        is_signal=True,
+        config_process="hh_ggf_bbtautau",
+        config_mc_datasets=["hh_ggf_bbtautau_madgraph"],
     )
     self.add_process(
         "TT",
-        process="tt_sl",
-        mc_datasets=["tt_sl"],
-
+        config_process="tt",
+        config_mc_datasets=["tt_sl_powheg"],
     )
 
     #
@@ -68,23 +68,23 @@ def test(self):
     self.add_parameter(
         "CMS_pileup",
         type=ParameterType.shape,
-        shift_source="minbias_xs",
+        config_shift_source="minbias_xs",
     )
     self.add_parameter_to_group("CMS_pileup", "experiment")
 
-    # and again minbias xs, but encoded as symmetrized rate
+    # and again minbias xs, but encoded as a symmetrized rate
     self.add_parameter(
         "CMS_pileup2",
         type=ParameterType.rate_uniform,
         transformations=[ParameterTransformation.effect_from_shape, ParameterTransformation.symmetrize],
-        shift_source="minbias_xs",
+        config_shift_source="minbias_xs",
     )
     self.add_parameter_to_group("CMS_pileup2", "experiment")
 
     # a custom asymmetric uncertainty that is converted from rate to shape
     self.add_parameter(
-        "QCDscale_ST",
-        process="ST",
+        "QCDscale_ttbar",
+        process="TT",
         type=ParameterType.shape,
         transformations=[ParameterTransformation.effect_from_rate],
         effect=(0.5, 1.1),
@@ -92,17 +92,37 @@ def test(self):
 
     # test
     self.add_parameter(
-        "QCDscale_ttbar",
+        "QCDscale_ttbar_uniform",
         category="cat1",
         process="TT",
         type=ParameterType.rate_uniform,
     )
     self.add_parameter(
-        "QCDscale_ttbar_norm",
-        category="cat1",
+        "QCDscale_ttbar_unconstrained",
+        category="cat2",
         process="TT",
         type=ParameterType.rate_unconstrained,
     )
+
+    #
+    # post-processing
+    #
+
+    self.cleanup()
+
+
+@inference_model
+def test_no_shifts(self):
+    # same initialization as "test" above
+    test.init_func.__get__(self, self.__class__)()
+
+    #
+    # remove all parameters that require a shift source
+    #
+
+    for category_name, process_name, parameter in self.iter_parameters():
+        if parameter.config_shift_source:
+            self.remove_parameter(parameter.name, process=process_name, category=category_name)
 
     #
     # post-processing
