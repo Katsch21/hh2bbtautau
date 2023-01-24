@@ -4,6 +4,8 @@
 Test model definition.
 """
 
+from __future__ import annotations
+
 from typing import Any
 
 import law
@@ -12,6 +14,7 @@ import order as od
 from columnflow.ml import MLModel
 from columnflow.util import maybe_import, dev_sandbox
 from columnflow.columnar_util import Route, set_ak_column
+
 
 ak = maybe_import("awkward")
 tf = maybe_import("tensorflow")

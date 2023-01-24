@@ -11,10 +11,11 @@ import re
 import itertools
 
 import yaml
-from scinum import Number
+import law
 import order as od
+from scinum import Number
 
-from columnflow.util import DotDict, get_root_processes_from_campaign
+from columnflow.util import DotDict, get_root_processes_from_campaign, dev_sandbox
 
 
 thisdir = os.path.dirname(os.path.abspath(__file__))
@@ -44,19 +45,29 @@ def add_config(
     cfg = analysis.add_config(campaign, name=config_name, id=config_id)
 
     # add processes we are interested in
-    cfg.add_process(procs.n.data)
-    cfg.add_process(procs.n.tt)
-    cfg.add_process(procs.n.st)
-    cfg.add_process(procs.n.ttv)
-    cfg.add_process(procs.n.ttvv)
-    cfg.add_process(procs.n.dy)
-    cfg.add_process(procs.n.w)
-    cfg.add_process(procs.n.ewk)
-    cfg.add_process(procs.n.vv)
-    cfg.add_process(procs.n.vvv)
-    cfg.add_process(procs.n.qcd)
-    cfg.add_process(procs.n.h)
-    cfg.add_process(procs.n.hh_ggf_bbtautau)
+    process_names = [
+        "data",
+        "tt",
+        "st",
+        "ttv",
+        "ttvv",
+        "dy",
+        "w",
+        "ewk",
+        "vv",
+        "vvv",
+        "qcd",
+        "h",
+        "hh_ggf_bbtautau",
+        "graviton_hh_ggf_bbtautau_m1250",
+    ]
+    for process_name in process_names:
+        # development switch in case datasets are not _yet_ there
+        if process_name not in procs:
+            continue
+
+        # add the process
+        cfg.add_process(procs.get(process_name))
 
     # configure colors, labels, etc
     from hbt.config.styles import stylize_processes
@@ -124,8 +135,14 @@ def add_config(
         "tth_nonbb_powheg",
         # signals
         "hh_ggf_bbtautau_madgraph",
+        "graviton_hh_ggf_bbtautau_m1250_madgraph",
     ]
     for dataset_name in dataset_names:
+        # development switch in case datasets are not _yet_ there
+        if dataset_name not in campaign.datasets:
+            continue
+
+        # add the dataset
         dataset = cfg.add_dataset(campaign.get_dataset(dataset_name))
 
         # add aux info to datasets
@@ -137,7 +154,7 @@ def add_config(
         # apply an optional limit on the number of files
         if limit_dataset_files:
             for info in dataset.info.values():
-                info.n_files = limit_dataset_files
+                info.n_files = min(info.n_files, limit_dataset_files)
 
     # default objects, such as calibrator, selector, producer, ml model, inference model, etc
     cfg.x.default_calibrator = "default"
@@ -171,7 +188,7 @@ def add_config(
     # selector step groups for conveniently looping over certain steps
     # (used in cutflow tasks)
     cfg.x.selector_step_groups = {
-        "default": ["met_filter", "trigger_fired", "leptons", "jet", "bjet"],
+        "default": ["met_filter", "trigger", "lepton", "jet", "bjet"],
     }
 
     # custom method and sandbox for determining dataset lfns
@@ -520,6 +537,26 @@ def add_config(
             },
         )
 
+    cfg.add_shift(name="pdf_up", id=130, type="shape")
+    cfg.add_shift(name="pdf_down", id=131, type="shape")
+    add_aliases(
+        "pdf",
+        {
+            "pdf_weight": "pdf_weight_{direction}",
+            "normalized_pdf_weight": "normalized_pdf_weight_{direction}",
+        },
+    )
+
+    cfg.add_shift(name="murmuf_up", id=140, type="shape")
+    cfg.add_shift(name="murmuf_down", id=141, type="shape")
+    add_aliases(
+        "murmuf",
+        {
+            "murmuf_weight": "murmuf_weight_{direction}",
+            "normalized_murmuf_weight": "normalized_murmuf_weight_{direction}",
+        },
+    )
+
     # external files
     json_mirror = "/afs/cern.ch/user/m/mrieger/public/mirrors/jsonpog-integration-849c6a6e"
     cfg.x.external_files = DotDict.wrap({
@@ -628,9 +665,9 @@ def add_config(
             "MET.pt", "MET.phi", "MET.significance", "MET.covXX", "MET.covXY", "MET.covYY",
             "PV.npvs",
             # columns added during selection
-            "channel_id", "process_id", "category_ids", "mc_weight", "leptons_os", "tau2_isolated",
-            "single_triggered", "cross_triggered", "deterministic_seed", "pu_weight*", "btag_weight*",
-            "cutflow.*",
+            "channel_id", "process_id", "category_ids", "mc_weight", "pdf_weight*", "murmuf_weight*",
+            "leptons_os", "tau2_isolated", "single_triggered", "cross_triggered",
+            "deterministic_seed", "pu_weight*", "btag_weight*", "cutflow.*",
         },
         "cf.MergeSelectionMasks": {
             "mc_weight", "normalization_weight", "process_id", "category_ids", "cutflow.*",
@@ -644,6 +681,8 @@ def add_config(
     get_shifts = lambda *keys: sum(([cfg.get_shift(f"{k}_up"), cfg.get_shift(f"{k}_down")] for k in keys), [])
     cfg.x.event_weights = DotDict()
     cfg.x.event_weights["normalization_weight"] = []
+    cfg.x.event_weights["pdf_weight"] = get_shifts("pdf")
+    cfg.x.event_weights["murmuf_weight"] = get_shifts("murmuf")
     cfg.x.event_weights["normalized_pu_weight"] = get_shifts("minbias_xs")
     cfg.x.event_weights["normalized_njet_btag_weight"] = get_shifts(*(f"btag_{unc}" for unc in btag_uncs))
     cfg.x.event_weights["electron_weight"] = get_shifts("e")
@@ -696,3 +735,33 @@ def add_config(
         add_triggers_2017(cfg)
     else:
         raise NotImplementedError(f"triggers not implemented for {year}")
+
+    # custom lfn retrieval method in case the underlying campaign is custom uhh
+    if cfg.campaign.x("custom", {}).get("creator") == "uhh":
+        def get_dataset_lfns(
+            dataset_inst: od.Dataset,
+            shift_inst: od.Shift,
+            dataset_key: str,
+        ) -> list[str]:
+            # destructure dataset_key into parts and create the lfn base directory
+            dataset_id, full_campaign, tier = dataset_key.split("/")[1:]
+            main_campaign, sub_campaign = full_campaign.split("-", 1)
+            lfn_base = law.wlcg.WLCGDirectoryTarget(
+                f"/store/{dataset_inst.data_source}/{main_campaign}/{dataset_id}/{tier}/{sub_campaign}/0",
+                fs=f"wlcg_fs_{cfg.campaign.x.custom['name']}",
+            )
+
+            # loop though files and interpret paths as lfns
+            return [
+                lfn_base.child(basename, type="f").path
+                for basename in lfn_base.listdir(pattern="*.root")
+            ]
+
+        # define the lfn retrieval function
+        cfg.x.get_dataset_lfns = get_dataset_lfns
+
+        # define a custom sandbox
+        cfg.x.get_dataset_lfns_sandbox = dev_sandbox("bash::$CF_BASE/sandboxes/cf_prod.sh")
+
+        # define custom remote fs's to look at
+        cfg.x.get_dataset_lfns_remote_fs = lambda dataset_inst: f"wlcg_fs_{cfg.campaign.x.custom['name']}"
