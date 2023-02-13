@@ -9,12 +9,12 @@ from functools import reduce
 from collections import defaultdict, OrderedDict
 
 from columnflow.selection import Selector, SelectionResult, selector
-from columnflow.production.mc_weight import mc_weight
-from columnflow.production.pileup import pu_weight
 from columnflow.production.processes import process_ids
-from columnflow.production.pdf import pdf_weights
-from columnflow.production.scale import murmuf_weights
-from columnflow.production.btag import btag_weights
+from columnflow.production.cms.mc_weight import mc_weight
+from columnflow.production.cms.pileup import pu_weight
+from columnflow.production.cms.pdf import pdf_weights
+from columnflow.production.cms.scale import murmuf_weights
+from columnflow.production.cms.btag import btag_weights
 from columnflow.production.util import attach_coffea_behavior
 from columnflow.util import maybe_import, dev_sandbox
 
@@ -132,12 +132,14 @@ def increment_stats(
 
 @selector(
     uses={
-        met_filter_selection, trigger_selection, lepton_selection, jet_selection, process_ids,
-        cutflow_features, increment_stats, attach_coffea_behavior,
+        met_filter_selection, trigger_selection, lepton_selection, jet_selection, mc_weight,
+        pdf_weights, murmuf_weights, pu_weight, btag_weights, process_ids, cutflow_features,
+        increment_stats, attach_coffea_behavior,
     },
     produces={
-        met_filter_selection, trigger_selection, lepton_selection, jet_selection, process_ids,
-        cutflow_features, increment_stats,
+        met_filter_selection, trigger_selection, lepton_selection, jet_selection, mc_weight,
+        pdf_weights, murmuf_weights, pu_weight, btag_weights, process_ids, cutflow_features,
+        increment_stats,
     },
     sandbox=dev_sandbox("bash::$HBT_BASE/sandboxes/venv_columnar_tf.sh"),
     exposed=True,
@@ -208,14 +210,3 @@ def default(
     events = self[cutflow_features](events, **kwargs)
 
     return events, results
-
-
-@default.init
-def default_init(self: Selector) -> None:
-    if not getattr(self, "dataset_inst", None) or self.dataset_inst.is_data:
-        return
-
-    # mc only selectors
-    selectors = {mc_weight, pdf_weights, murmuf_weights, pu_weight, btag_weights}
-    self.uses |= selectors
-    self.produces |= selectors

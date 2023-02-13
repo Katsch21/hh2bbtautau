@@ -8,7 +8,7 @@ import functools
 
 from columnflow.production import Producer, producer
 from columnflow.production.categories import category_ids
-from columnflow.production.mc_weight import mc_weight
+from columnflow.production.cms.mc_weight import mc_weight
 from columnflow.util import maybe_import
 from columnflow.columnar_util import EMPTY_FLOAT, Route, set_ak_column
 
@@ -21,26 +21,6 @@ set_ak_column_f32 = functools.partial(set_ak_column, value_type=np.float32)
 set_ak_column_i32 = functools.partial(set_ak_column, value_type=np.int32)
 
 
-@producer
-def jet_energy_shifts(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
-    """
-    Pseudo-producer that registers jet energy shifts.
-    """
-    return events
-
-
-@jet_energy_shifts.init
-def jet_energy_shifts_init(self: Producer) -> None:
-    """
-    Register shifts.
-    """
-    self.shifts |= {
-        f"jec_{junc_name}_{junc_dir}"
-        for junc_name in self.config_inst.x.jec.uncertainty_sources
-        for junc_dir in ("up", "down")
-    } | {"jer_up", "jer_down"}
-
-
 @producer(
     uses={
         # nano columns
@@ -49,9 +29,6 @@ def jet_energy_shifts_init(self: Producer) -> None:
     produces={
         # new columns
         "ht", "n_jet", "n_hhbtag", "n_electron", "n_muon",
-    },
-    shifts={
-        jet_energy_shifts,
     },
 )
 def features(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
@@ -66,12 +43,12 @@ def features(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
 
 @producer(
     uses={
-        category_ids,
+        mc_weight, category_ids,
         # nano columns
         "Jet.pt", "Jet.eta", "Jet.phi",
     },
     produces={
-        category_ids,
+        mc_weight, category_ids,
         # new columns
         "cutflow.n_jet", "cutflow.ht", "cutflow.jet1_pt", "cutflow.jet1_eta", "cutflow.jet1_phi",
     },
@@ -89,13 +66,3 @@ def cutflow_features(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     events = set_ak_column_f32(events, "cutflow.jet1_phi", Route("Jet.phi[:,0]").apply(events, EMPTY_FLOAT))
 
     return events
-
-
-@cutflow_features.init
-def cutflow_features_init(self: Producer) -> None:
-    if not getattr(self, "dataset_inst", None) or self.dataset_inst.is_data:
-        return
-
-    # mc only producers
-    self.uses |= {mc_weight}
-    self.produces |= {mc_weight}

@@ -7,15 +7,18 @@ Configuration of the HH → bb𝜏𝜏 analysis.
 from __future__ import annotations
 
 import os
-import re
 import itertools
+import functools
 
 import yaml
 import law
 import order as od
 from scinum import Number
 
-from columnflow.util import DotDict, get_root_processes_from_campaign, dev_sandbox
+from columnflow.util import DotDict, dev_sandbox
+from columnflow.config_util import (
+    get_root_processes_from_campaign, add_shift_aliases, get_shifts_from_sources,
+)
 
 
 thisdir = os.path.dirname(os.path.abspath(__file__))
@@ -379,22 +382,6 @@ def add_config(
         "TimePtEta",
     ]
 
-    # helper to add column aliases for both shifts of a source
-    def add_aliases(
-        shift_source: str,
-        aliases: dict,
-        selection_dependent: bool = False,
-    ):
-        aux_key = "column_aliases" + ("_selection_dependent" if selection_dependent else "")
-        for direction in ["up", "down"]:
-            shift = cfg.get_shift(od.Shift.join_name(shift_source, direction))
-            _aliases = shift.x(aux_key, {})
-            # format keys and values
-            inject_shift = lambda s: re.sub(r"\{([^_])", r"{_\1", s).format(**shift.__dict__)
-            _aliases.update({inject_shift(key): inject_shift(value) for key, value in aliases.items()})
-            # extend existing or register new column aliases
-            shift.set_aux(aux_key, _aliases)
-
     # load jec sources
     with open(os.path.join(thisdir, "jec_sources.yaml"), "r") as f:
         all_jec_sources = yaml.load(f, yaml.Loader)["names"]
@@ -410,7 +397,8 @@ def add_config(
 
     cfg.add_shift(name="minbias_xs_up", id=7, type="shape")
     cfg.add_shift(name="minbias_xs_down", id=8, type="shape")
-    add_aliases(
+    add_shift_aliases(
+        cfg,
         "minbias_xs",
         {
             "pu_weight": "pu_weight_{name}",
@@ -420,7 +408,7 @@ def add_config(
 
     cfg.add_shift(name="top_pt_up", id=9, type="shape")
     cfg.add_shift(name="top_pt_down", id=10, type="shape")
-    add_aliases("top_pt", {"top_pt_weight": "top_pt_weight_{direction}"})
+    add_shift_aliases(cfg, "top_pt", {"top_pt_weight": "top_pt_weight_{direction}"})
 
     for jec_source in cfg.x.jec.uncertainty_sources:
         idx = all_jec_sources.index(jec_source)
@@ -439,7 +427,8 @@ def add_config(
             aux={"jec_source": jec_source},
         )
         # selection dependent aliases
-        add_aliases(
+        add_shift_aliases(
+            cfg,
             f"jec_{jec_source}",
             {
                 "Jet.pt": "Jet.pt_{name}",
@@ -452,7 +441,8 @@ def add_config(
         # selection independent aliases
         # TODO: check the JEC de/correlation across years and the interplay with btag weights
         if ("" if jec_source == "Total" else jec_source) in cfg.x.btag_sf_jec_sources:
-            add_aliases(
+            add_shift_aliases(
+                cfg,
                 f"jec_{jec_source}",
                 {
                     "normalized_btag_weight": "normalized_btag_weight_{name}",
@@ -462,7 +452,8 @@ def add_config(
 
     cfg.add_shift(name="jer_up", id=6000, type="shape", tags={"jer"})
     cfg.add_shift(name="jer_down", id=6001, type="shape", tags={"jer"})
-    add_aliases(
+    add_shift_aliases(
+        cfg,
         "jer",
         {
             "Jet.pt": "Jet.pt_{name}",
@@ -476,7 +467,8 @@ def add_config(
     for i, (match, dm) in enumerate(itertools.product(["jet", "e"], [0, 1, 10, 11])):
         cfg.add_shift(name=f"tec_{match}_dm{dm}_up", id=20 + 2 * i, type="shape", tags={"tec"})
         cfg.add_shift(name=f"tec_{match}_dm{dm}_down", id=21 + 2 * i, type="shape", tags={"tec"})
-        add_aliases(
+        add_shift_aliases(
+            cfg,
             f"tec_{match}_dm{dm}",
             {
                 "Tau.pt": "Tau.pt_{name}",
@@ -496,29 +488,29 @@ def add_config(
     for i, unc in enumerate(tau_uncs):
         cfg.add_shift(name=f"tau_{unc}_up", id=50 + 2 * i, type="shape")
         cfg.add_shift(name=f"tau_{unc}_down", id=51 + 2 * i, type="shape")
-        add_aliases(f"tau_{unc}", {"tau_weight": f"tau_weight_{unc}_" + "{direction}"})
+        add_shift_aliases(cfg, f"tau_{unc}", {"tau_weight": f"tau_weight_{unc}_" + "{direction}"})
 
     cfg.add_shift(name="tautau_trigger_up", id=80, type="shape")
     cfg.add_shift(name="tautau_trigger_down", id=81, type="shape")
-    add_aliases("tautau_trigger", {"tau_trigger_weight": "tau_trigger_weight_tautau_{direction}"})
+    add_shift_aliases(cfg, "tautau_trigger", {"tau_trigger_weight": "tau_trigger_weight_tautau_{direction}"})
     cfg.add_shift(name="etau_trigger_up", id=82, type="shape")
     cfg.add_shift(name="etau_trigger_down", id=83, type="shape")
-    add_aliases("etau_trigger", {"tau_trigger_weight": "tau_trigger_weight_etau_{direction}"})
+    add_shift_aliases(cfg, "etau_trigger", {"tau_trigger_weight": "tau_trigger_weight_etau_{direction}"})
     cfg.add_shift(name="mutau_trigger_up", id=84, type="shape")
     cfg.add_shift(name="mutau_trigger_down", id=85, type="shape")
-    add_aliases("mutau_trigger", {"tau_trigger_weight": "tau_trigger_weight_mutau_{direction}"})
+    add_shift_aliases(cfg, "mutau_trigger", {"tau_trigger_weight": "tau_trigger_weight_mutau_{direction}"})
     # no uncertainty for di-tau VBF trigger existing yet
     # cfg.add_shift(name="mutau_trigger_up", id=86, type="shape")
     # cfg.add_shift(name="tautauvbf_trigger_down", id=86, type="shape")
-    # add_aliases("tautauvbf_trigger", {"tau_trigger_weight": "tau_trigger_weight_tautauvbf_{direction}"})
+    # add_shift_aliases(cfg, "tautauvbf_trigger", {"tau_trigger_weight": "tau_trigger_weight_tautauvbf_{direction}"})
 
     cfg.add_shift(name="e_up", id=90, type="shape")
     cfg.add_shift(name="e_down", id=91, type="shape")
-    add_aliases("e", {"electron_weight": "electron_weight_{direction}"})
+    add_shift_aliases(cfg, "e", {"electron_weight": "electron_weight_{direction}"})
 
     cfg.add_shift(name="mu_up", id=100, type="shape")
     cfg.add_shift(name="mu_down", id=101, type="shape")
-    add_aliases("mu", {"muon_weight": "muon_weight_{direction}"})
+    add_shift_aliases(cfg, "mu", {"muon_weight": "muon_weight_{direction}"})
 
     btag_uncs = [
         "hf", "lf",
@@ -529,7 +521,8 @@ def add_config(
     for i, unc in enumerate(btag_uncs):
         cfg.add_shift(name=f"btag_{unc}_up", id=110 + 2 * i, type="shape")
         cfg.add_shift(name=f"btag_{unc}_down", id=111 + 2 * i, type="shape")
-        add_aliases(
+        add_shift_aliases(
+            cfg,
             f"btag_{unc}",
             {
                 "normalized_btag_weight": f"normalized_btag_weight_{unc}_" + "{direction}",
@@ -539,7 +532,8 @@ def add_config(
 
     cfg.add_shift(name="pdf_up", id=130, type="shape")
     cfg.add_shift(name="pdf_down", id=131, type="shape")
-    add_aliases(
+    add_shift_aliases(
+        cfg,
         "pdf",
         {
             "pdf_weight": "pdf_weight_{direction}",
@@ -549,7 +543,8 @@ def add_config(
 
     cfg.add_shift(name="murmuf_up", id=140, type="shape")
     cfg.add_shift(name="murmuf_down", id=141, type="shape")
-    add_aliases(
+    add_shift_aliases(
+        cfg,
         "murmuf",
         {
             "murmuf_weight": "murmuf_weight_{direction}",
@@ -558,7 +553,7 @@ def add_config(
     )
 
     # external files
-    json_mirror = "/afs/cern.ch/user/m/mrieger/public/mirrors/jsonpog-integration-849c6a6e"
+    json_mirror = "/afs/cern.ch/user/m/mrieger/public/mirrors/jsonpog-integration-878881a8"
     cfg.x.external_files = DotDict.wrap({
         # jet energy correction
         "jet_jerc": (f"{json_mirror}/POG/JME/{year}{corr_postfix}_UL/jet_jerc.json.gz", "v1"),
@@ -672,23 +667,24 @@ def add_config(
         "cf.MergeSelectionMasks": {
             "mc_weight", "normalization_weight", "process_id", "category_ids", "cutflow.*",
         },
-        "cf.CoalesceColumns": {
+        "cf.UniteColumns": {
             "*",
         },
     })
 
     # event weight columns as keys in an OrderedDict, mapped to shift instances they depend on
-    get_shifts = lambda *keys: sum(([cfg.get_shift(f"{k}_up"), cfg.get_shift(f"{k}_down")] for k in keys), [])
-    cfg.x.event_weights = DotDict()
-    cfg.x.event_weights["normalization_weight"] = []
-    cfg.x.event_weights["pdf_weight"] = get_shifts("pdf")
-    cfg.x.event_weights["murmuf_weight"] = get_shifts("murmuf")
-    cfg.x.event_weights["normalized_pu_weight"] = get_shifts("minbias_xs")
-    cfg.x.event_weights["normalized_njet_btag_weight"] = get_shifts(*(f"btag_{unc}" for unc in btag_uncs))
-    cfg.x.event_weights["electron_weight"] = get_shifts("e")
-    cfg.x.event_weights["muon_weight"] = get_shifts("mu")
-    cfg.x.event_weights["tau_weight"] = get_shifts(*(f"tau_{unc}" for unc in tau_uncs))
-    cfg.x.event_weights["tau_trigger_weight"] = get_shifts("etau_trigger", "mutau_trigger", "tautau_trigger")
+    get_shifts = functools.partial(get_shifts_from_sources, cfg)
+    cfg.x.event_weights = DotDict({
+        "normalization_weight": [],
+        "pdf_weight": get_shifts("pdf"),
+        "murmuf_weight": get_shifts("murmuf"),
+        "normalized_pu_weight": get_shifts("minbias_xs"),
+        "normalized_njet_btag_weight": get_shifts(*(f"btag_{unc}" for unc in btag_uncs)),
+        "electron_weight": get_shifts("e"),
+        "muon_weight": get_shifts("mu"),
+        "tau_weight": get_shifts(*(f"tau_{unc}" for unc in tau_uncs)),
+        "tau_trigger_weight": get_shifts("etau_trigger", "mutau_trigger", "tautau_trigger"),
+    })
 
     # define per-dataset event weights
     for dataset in cfg.datasets:
@@ -712,7 +708,7 @@ def add_config(
     # else:
     #     raise NotImplementedError(f"config versions not implemented for {cfg.name}")
 
-    # cannels
+    # channels
     cfg.add_channel(name="mutau", id=1)
     cfg.add_channel(name="etau", id=2)
     cfg.add_channel(name="tautau", id=3)
