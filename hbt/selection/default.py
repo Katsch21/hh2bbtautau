@@ -26,12 +26,14 @@ from hbt.production.features import cutflow_features
 
 
 np = maybe_import("numpy")
+# Genutzt werden Awkward-Arrays, da die Datensätze durch Selektionskriterien verschieden groß sind:
 ak = maybe_import("awkward")
 
-
+# Um jeden neuen Selektor, der definiert wird, wird der Wrapper @Selector genutzt.
 @selector(
     uses={btag_weights, pu_weight},
 )
+# Was genau ist stats?
 def increment_stats(
     self: Selector,
     events: ak.Array,
@@ -44,6 +46,7 @@ def increment_stats(
     *stats* in-place based on all input *events* and the final selection *mask*.
     """
     # get event masks
+    # Was genau ist eine Maske?
     event_mask = results.main.event
     event_mask_no_bjet = results.steps.all_but_bjet
 
@@ -59,6 +62,9 @@ def increment_stats(
 
     # create a map of entry names to (weight, mask) pairs that will be written to stats
     weight_map = OrderedDict()
+
+    # Für MC-Daten werden Einträge in weight_map erstellt.
+    # Was bedeuten die (weight, mask) Paare?
     if self.dataset_inst.is_mc:
         # mc weight for all events
         weight_map["mc_weight"] = (events.mc_weight, Ellipsis)
@@ -129,7 +135,9 @@ def increment_stats(
 
     return events
 
-
+# Erster "richtiger" Selektor, deshalb sind hier "uses" und "produces" aufgeführt.
+# Die einzelnen Selektoren (met, trigger, lepton, jet) aus den jeweiligen Skripten
+# und das in diesem Skript erstellte "increment stats" werden hier genutzt.
 @selector(
     uses={
         met_filter_selection, trigger_selection, lepton_selection, jet_selection, mc_weight,
@@ -194,7 +202,7 @@ def default(
     event_sel = reduce(and_, results.steps.values())
     results.main["event"] = event_sel
 
-    # combined event seleciton after all but the bjet step
+    # combined event selectiton after all but the bjet step
     results.steps.all_but_bjet = reduce(
         and_,
         [mask for step_name, mask in results.steps.items() if step_name != "bjet"],

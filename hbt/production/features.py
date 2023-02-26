@@ -11,6 +11,7 @@ from columnflow.production.categories import category_ids
 from columnflow.production.cms.mc_weight import mc_weight
 from columnflow.util import maybe_import
 from columnflow.columnar_util import EMPTY_FLOAT, Route, set_ak_column
+from IPython import embed
 
 
 np = maybe_import("numpy")
@@ -45,12 +46,25 @@ def features(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     uses={
         mc_weight, category_ids,
         # nano columns
-        "Jet.pt", "Jet.eta", "Jet.phi",
+        "Jet.pt", "Jet.eta", "Jet.phi", 
+        # btags:
+        "Jet.btagDeepFlavB", "Jet.btagDeepFlavCvB",
+        # deeptau:
+        "Tau.rawDeepTau2017v2p1VSe", "Tau.rawDeepTau2017v2p1VSjet", "Tau.rawDeepTau2017v2p1VSmu",
+        # fatjets:
+        "FatJet.btagHbb", "FatJet.btagDeepB",
     },
     produces={
         mc_weight, category_ids,
         # new columns
         "cutflow.n_jet", "cutflow.ht", "cutflow.jet1_pt", "cutflow.jet1_eta", "cutflow.jet1_phi",
+        # btags
+        "cutflow.btagDeepFlavB1", "cutflow.btagDeepFlavCvB1", "cutflow.btagDeepFlavB2", "cutflow.btagDeepFlavCvB2",
+        # deeptau
+        "cutflow.rawDeepTau2017v2p1VSe1", "cutflow.rawDeepTau2017v2p1VSjet1", "cutflow.rawDeepTau2017v2p1VSmu1",
+        "cutflow.rawDeepTau2017v2p1VSe2", "cutflow.rawDeepTau2017v2p1VSjet2", "cutflow.rawDeepTau2017v2p1VSmu2",
+        # fatjets
+        "cutflow.fatJet1.btagHbb", "cutflow.fatJet1.btagDeepb", "cutflow.fatJet2.btagHbb", "cutflow.fatJet2.btagDeepb", 
     },
 )
 def cutflow_features(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
@@ -64,5 +78,37 @@ def cutflow_features(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     events = set_ak_column_f32(events, "cutflow.jet1_pt", Route("Jet.pt[:,0]").apply(events, EMPTY_FLOAT))
     events = set_ak_column_f32(events, "cutflow.jet1_eta", Route("Jet.eta[:,0]").apply(events, EMPTY_FLOAT))
     events = set_ak_column_f32(events, "cutflow.jet1_phi", Route("Jet.phi[:,0]").apply(events, EMPTY_FLOAT))
+    # btags
+    events = set_ak_column_f32(events, "cutflow.btagDeepFlavB1", ak.sort(events.Jet.btagDeepFlavB, axis=1, ascending=False)[:,0])
+    events = set_ak_column_f32(events, "cutflow.btagDeepFlavCvB1", ak.sort(events.Jet.btagDeepFlavCvB, axis=1, ascending=True)[:,0])
+    events = set_ak_column_f32(events, "cutflow.btagDeepFlavB2", ak.sort(events.Jet.btagDeepFlavB, axis=1, ascending=False)[:,1])
+    events = set_ak_column_f32(events, "cutflow.btagDeepFlavCvB2", ak.sort(events.Jet.btagDeepFlavCvB, axis=1, ascending=True)[:,1])
+    
+    # add EMPTY_FLOAT default value for columns with empty collections
+    def pad_events(events: ak.Array, variable: str, number_required_objects: int):
+            column = Route(variable).apply(events)
+            column_padded = ak.pad_none(column, number_required_objects, axis=1)
+            column_padded = ak.fill_none(column_padded, EMPTY_FLOAT, axis=1)
+            return column_padded
 
+    # padded columns
+    rawDeepTau2017v2p1VSe_padded = pad_events(events, "Tau.rawDeepTau2017v2p1VSe", 2)
+    rawDeepTau2017v2p1VSjet_padded = pad_events(events, "Tau.rawDeepTau2017v2p1VSjet", 2)
+    rawDeepTau2017v2p1VSmu_padded = pad_events(events, "Tau.rawDeepTau2017v2p1VSmu", 2)
+    btagHbb_padded = pad_events(events, "FatJet.btagHbb", 2)
+    btagDeepb_padded = pad_events(events, "FatJet.btagDeepB", 2)
+    
+    # deeptau
+    events = set_ak_column_f32(events, "cutflow.rawDeepTau2017v2p1VSe1", ak.sort(rawDeepTau2017v2p1VSe_padded, axis=1, ascending=False)[:,0])
+    events = set_ak_column_f32(events, "cutflow.rawDeepTau2017v2p1VSjet1", ak.sort(rawDeepTau2017v2p1VSjet_padded, axis=1, ascending=False)[:,0])
+    events = set_ak_column_f32(events, "cutflow.rawDeepTau2017v2p1VSmu1", ak.sort(rawDeepTau2017v2p1VSmu_padded, axis=1, ascending=False)[:,0])
+
+    events = set_ak_column_f32(events, "cutflow.rawDeepTau2017v2p1VSe2", ak.sort(rawDeepTau2017v2p1VSe_padded, axis=1, ascending=False)[:,1])
+    events = set_ak_column_f32(events, "cutflow.rawDeepTau2017v2p1VSjet2", ak.sort(rawDeepTau2017v2p1VSjet_padded, axis=1, ascending=False)[:,1])
+    events = set_ak_column_f32(events, "cutflow.rawDeepTau2017v2p1VSmu2", ak.sort(rawDeepTau2017v2p1VSmu_padded, axis=1, ascending=False)[:,1])
+    # fatjets
+    events = set_ak_column_f32(events, "cutflow.fatJet1.btagHbb", ak.sort(btagHbb_padded, axis=1, ascending=False)[:,0])
+    events = set_ak_column_f32(events, "cutflow.fatJet1.btagDeepb", ak.sort(btagDeepb_padded, axis=1, ascending=False)[:,0])
+    events = set_ak_column_f32(events, "cutflow.fatJet2.btagHbb", ak.sort(btagHbb_padded, axis=1, ascending=False)[:,1])
+    events = set_ak_column_f32(events, "cutflow.fatJet2.btagDeepb", ak.sort(btagDeepb_padded, axis=1, ascending=False)[:,1])
     return events

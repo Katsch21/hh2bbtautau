@@ -192,6 +192,7 @@ def add_config(
     # (used in cutflow tasks)
     cfg.x.selector_step_groups = {
         "default": ["met_filter", "trigger", "lepton", "jet", "bjet"],
+        "boosted": ["trigger", "lepton", "boosted_jet_selector"]
     }
 
     # custom method and sandbox for determining dataset lfns
@@ -647,6 +648,7 @@ def add_config(
             # object info
             "Jet.pt", "Jet.eta", "Jet.phi", "Jet.mass", "Jet.btagDeepFlavB", "Jet.hadronFlavour",
             "Jet.hhbtag",
+            "FatJet.pt", # we added this one
             "HHBJet.pt", "HHBJet.eta", "HHBJet.phi", "HHBJet.mass", "HHBJet.btagDeepFlavB",
             "HHBJet.hadronFlavour", "HHBJet.hhbtag",
             "NonHHBJet.pt", "NonHHBJet.eta", "NonHHBJet.phi", "NonHHBJet.mass",
@@ -659,6 +661,14 @@ def add_config(
             "Tau.decayMode",
             "MET.pt", "MET.phi", "MET.significance", "MET.covXX", "MET.covXY", "MET.covYY",
             "PV.npvs",
+            ### my own variables
+            # btags
+            "Jet.btagDeepFlavB", "Jet.btagDeepFlavCvB",
+            # fatjets
+            "FatJet.btagHbb", "FatJet.deepTag.H", "FatJet.deepTagMD.H4qvsQCD", "FatJet.deepTagMD.HbbvsQCD",
+            "FatJet.particleNetMD.Xbb", "FatJet.particleNet.H4qvsQCD", "FatJet.particleNet.HbbvsQCD",
+            # deeptau
+            "Tau.rawDeepTau2017v2p1VSe", "Tau.rawDeepTau2017v2p1VSjet", "Tau.rawDeepTau2017v2p1VSmu",
             # columns added during selection
             "channel_id", "process_id", "category_ids", "mc_weight", "pdf_weight*", "murmuf_weight*",
             "leptons_os", "tau2_isolated", "single_triggered", "cross_triggered",
@@ -742,11 +752,11 @@ def add_config(
             # destructure dataset_key into parts and create the lfn base directory
             dataset_id, full_campaign, tier = dataset_key.split("/")[1:]
             main_campaign, sub_campaign = full_campaign.split("-", 1)
-            lfn_base = law.wlcg.WLCGDirectoryTarget(
-                f"/store/{dataset_inst.data_source}/{main_campaign}/{dataset_id}/{tier}/{sub_campaign}/0",
-                fs=f"wlcg_fs_{cfg.campaign.x.custom['name']}",
+            lfn_base = law.LocalDirectoryTarget(
+                f"store/{dataset_inst.data_source}/{main_campaign}/{dataset_id}/{tier}/{sub_campaign}/0",
+                fs=f"local_{cfg.campaign.x.custom['name']}",
             )
-
+            from IPython import embed; embed()
             # loop though files and interpret paths as lfns
             return [
                 lfn_base.child(basename, type="f").path

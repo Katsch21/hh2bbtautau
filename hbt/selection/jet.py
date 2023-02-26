@@ -135,7 +135,7 @@ def jet_selection(
     vbfjet_indices = vbfjet_indices[ak.argsort(events.Jet[vbfjet_indices].pt, axis=1, ascending=False)]
 
     # check whether the two bjets were matched by fatjet subjets to mark it as boosted
-    fatjet_mask = (
+    vanilla_fatjet_mask = (
         (events.FatJet.jetId == 6) &  # tight plus lepton veto
         (events.FatJet.msoftdrop > 30.0) &
         (abs(events.FatJet.eta) < 2.4) &
@@ -150,7 +150,7 @@ def jet_selection(
         ak.all(ak.sum(metrics < 0.4, axis=3) == 1, axis=2) &
         (ak.num(hhbjet_indices, axis=1) == 2)
     )
-    fatjet_mask = fatjet_mask & subjets_match
+    fatjet_mask = vanilla_fatjet_mask & subjets_match
 
     # store fatjet and subjet indices
     fatjet_indices = ak.local_index(events.FatJet.pt)[fatjet_mask]
@@ -192,9 +192,14 @@ def jet_selection(
     events = set_ak_column(events, "Jet.hhbtag", hhbtag_scores)
 
     # build and return selection results plus new columns (src -> dst -> indices)
+    from IPython import embed; embed()
     return events, SelectionResult(
         steps={
             "jet": jet_sel,
+            "vanilla_fatjet": vanilla_fatjet_mask,
+            "subjet_match": subjets_match,
+            "fatjet_mask": fatjet_mask,
+            "hhbtag_validscore": valid_score_mask,
             # the btag weight normalization requires a selection with everything but the bjet
             # selection, so add this step here
             # note: there is currently no b-tag discriminant cut at this point, so take jet_sel

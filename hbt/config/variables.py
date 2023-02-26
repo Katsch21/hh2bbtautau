@@ -56,6 +56,116 @@ def add_variables(config: od.Config) -> None:
         x_title=r"MET $\phi$",
     )
 
+    # TODO: add more variables that are important for my selections.
+    
+    # btags:
+    config.add_variable(
+        name="jet_btag_deepflavb",
+        expression="Jet.btagDeepFlavB",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0, 1),
+        x_title=r"DeepJet b+bb+lepb tag discriminator "
+    )
+    config.add_variable(
+        name="jet_btag_deepflavcvb",
+        expression="Jet.btagDeepFlavCvB[:,0]",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0, 1),
+        x_title=r"DeepJet c vs b+bb+lepb discriminator (inverted c tagger)"
+    )
+
+    # fatjets:
+    config.add_variable(
+        name="fatjet_btag_hbb",
+        expression="FatJet.btagHbb",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0, 1),
+        x_title=r"Higgs to BB tagger discriminator"
+    )
+    config.add_variable(
+        name="fatjet_btag_deepb",
+        expression="FatJet.btagDeepB",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0, 1),
+        x_title=r"DeepCSV b+bb tag discriminator"
+    )
+    config.add_variable(
+        name="fatjet_deeptag_h",
+        expression="FatJet.deepTag.H[:,0]",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0, 1),
+        x_title=r"DeepBoostedJet tagger H(bb,cc,4q) sum"
+    )
+    config.add_variable(
+        name="fatjet_deeptagmd_h4qvsqcd",
+        expression="FatJet.deepTagMD.H4qvsQCD[:,0]",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0, 1),
+        x_title=r"Mass-decorrelated DeepBoostedJet tagger H->4q vs QCD discriminator"
+    )
+    config.add_variable(
+        name="fatjet_deeptagmd_hbbvsqcd",
+        expression="FatJet.deepTagMD.HbbvsQCD[:,0]",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0, 1),
+        x_title=r"Mass-decorrelated DeepBoostedJet tagger H->bb vs QCD discriminator"
+    )
+    config.add_variable(
+        name="fatjet_particlenetmd_xbb",
+        expression="FatJet.particleNetMD.Xbb[:,0]",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0, 1),
+        x_title=r"Mass-decorrelated ParticleNet tagger raw X->bb score"
+    )
+    config.add_variable(
+        name="fatjet_particlenet_h4qvsqcd",
+        expression="FatJet.particleNet.H4qvsQCD[:,0]",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0, 1),
+        x_title=r"ParticleNet tagger H(->VV->qqqq) vs QCD discriminator"
+    )
+    config.add_variable(
+        name="fatjet_particlenet_hbbvsqcd",
+        expression="FatJet.particleNet.HbbvsQCD[:,0]",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0, 1),
+        x_title=r"ParticleNet tagger H(->bb) vs QCD discriminator"
+    )
+    
+    # deeptau:
+    config.add_variable(
+        name="tau_rawdeeptau2017v2p1_vs_e",
+        expression="Tau.rawDeepTau2017v2p1VSe",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0, 1),
+        x_title=r"byDeepTau2017v2p1VSe raw output discriminator"
+    )
+    config.add_variable(
+        name="tau_rawdeeptau2017v2p1_vs_jet",
+        expression="Tau.rawDeepTau2017v2p1VSjet",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0, 1),
+        x_title=r"byDeepTau2017v2p1VSjet raw output discriminator"
+    )
+    config.add_variable(
+        name="tau_rawdeeptau2017v2p1_vs_mu",
+        expression="Tau.rawDeepTau2017v2p1VSmu",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0, 1),
+        x_title=r"byDeepTau2017v2p1VSmu raw output discriminator"
+    )
+
+    #####
+
+    config.add_variable(
+        name="fatjet_pt",
+        expression="FatJet.pt[:,0]",
+        null_value=EMPTY_FLOAT,
+        binning=(500, 0, 500),
+        x_title=r"AK8 Jet p_{T}"
+    )
+
+
     # weights
     config.add_variable(
         name="mc_weight",
@@ -94,6 +204,8 @@ def add_variables(config: od.Config) -> None:
         x_title="$N_{jet}$ normalized b-tag weight",
     )
 
+###################################################################
+###################################################################
     # cutflow variables
     config.add_variable(
         name="cf_njet",
@@ -128,3 +240,108 @@ def add_variables(config: od.Config) -> None:
         binning=(32, -3.2, 3.2),
         x_title=r"Jet 1 $\phi$",
     )
+
+    # btags:
+    config.add_variable(
+        name="cf_btag1_deepflavb",
+        expression="cutflow.btagDeepFlavB1",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0, 1),
+        x_title=r"max(DeepJet b+bb+lepb tag discriminator)",
+    )
+    config.add_variable(
+            name="cf_btag1_deepflavcvb",
+            expression="cutflow.btagDeepFlavCvB1",
+            null_value=EMPTY_FLOAT,
+            binning=(100, 0, 1),
+            x_title=r"max(inverted DeepJet c vs b+bb+lepb discriminator)"
+        )
+    config.add_variable(
+        name="cf_btag2_deepflavb",
+        expression="cutflow.btagDeepFlavB2",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0, 1),
+        x_title=r"second highest DeepJet b+bb+lepb tag discriminator",
+    )
+    config.add_variable(
+            name="cf_btag2_deepflavcvb",
+            expression="cutflow.btagDeepFlavCvB2",
+            null_value=EMPTY_FLOAT,
+            binning=(100, 0, 1),
+            x_title=r"second(inverted DeepJet c vs b+bb+lepb discriminator)"
+        )
+
+    #deeptau:
+    config.add_variable(
+        name="cf_rawdeeptau2017v2p1_vs_e1",
+        expression="cutflow.rawDeepTau2017v2p1VSe1",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0, 1),
+        x_title=r"max of byDeepTau2017v2p1VSe raw output discriminator"
+    )
+    config.add_variable(
+        name="cf_rawdeeptau2017v2p1_vs_jet1",
+        expression="cutflow.rawDeepTau2017v2p1VSjet1",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0, 1),
+        x_title=r"max of byDeepTau2017v2p1VSjet raw output discriminator"
+    )
+    config.add_variable(
+        name="cf_rawdeeptau2017v2p1_vs_mu1",
+        expression="cutflow.rawDeepTau2017v2p1VSmu1",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0, 1),
+        x_title=r"max of byDeepTau2017v2p1VSmu raw output discriminator"
+    )
+    config.add_variable(
+        name="cf_rawdeeptau2017v2p1_vs_e2",
+        expression="cutflow.rawDeepTau2017v2p1VSe2",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0, 1),
+        x_title=r"second highest byDeepTau2017v2p1VSe raw output discriminator"
+    )
+    config.add_variable(
+        name="cf_rawdeeptau2017v2p1_vs_jet2",
+        expression="cutflow.rawDeepTau2017v2p1VSjet2",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0, 1),
+        x_title=r"second highest byDeepTau2017v2p1VSjet raw output discriminator"
+    )
+    config.add_variable(
+        name="cf_rawdeeptau2017v2p1_vs_mu2",
+        expression="cutflow.rawDeepTau2017v2p1VSmu2",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0, 1),
+        x_title=r"second highest byDeepTau2017v2p1VSmu raw output discriminator"
+    )
+
+    # fatjets:
+    config.add_variable(
+        name="cf_fatjet_btag_hbb1",
+        expression="cutflow.fatJet1.btagHbb",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0, 1),
+        x_title=r"max of Higgs to BB tagger discriminator"
+    )
+    config.add_variable(
+        name="cf_fatjet_btag_deepb1",
+        expression="cutflow.fatJet1.btagDeepb",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0, 1),
+        x_title=r"max of DeepCSV b+bb tag discriminator"
+    )
+    config.add_variable(
+        name="cf_fatjet_btag_hbb2",
+        expression="cutflow.fatJet2.btagHbb",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0, 1),
+        x_title=r"second highest Higgs to BB tagger discriminator"
+    )
+    config.add_variable(
+        name="cf_fatjet_btag_deepb2",
+        expression="cutflow.fatJet2.btagDeepb",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0, 1),
+        x_title=r"second highest DeepCSV b+bb tag discriminator"
+    )
+    
