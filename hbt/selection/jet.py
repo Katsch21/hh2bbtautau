@@ -192,14 +192,13 @@ def jet_selection(
     events = set_ak_column(events, "Jet.hhbtag", hhbtag_scores)
 
     # build and return selection results plus new columns (src -> dst -> indices)
-    from IPython import embed; embed()
     return events, SelectionResult(
         steps={
             "jet": jet_sel,
-            "vanilla_fatjet": vanilla_fatjet_mask,
-            "subjet_match": subjets_match,
-            "fatjet_mask": fatjet_mask,
-            "hhbtag_validscore": valid_score_mask,
+            # "vanilla_fatjet": vanilla_fatjet_mask,
+            # "subjet_match": subjets_match,
+            # "fatjet_mask": fatjet_mask,
+            # "hhbtag_validscore": valid_score_mask,
             # the btag weight normalization requires a selection with everything but the bjet
             # selection, so add this step here
             # note: there is currently no b-tag discriminant cut at this point, so take jet_sel
@@ -219,6 +218,7 @@ def jet_selection(
         aux={
             # jet mask that lead to the jet_indices
             "jet_mask": default_mask,
+            "vanilla_fatjet_mask": vanilla_fatjet_mask,
             # used to determine sum of weights in increment_stats
             "n_central_jets": ak.num(jet_indices, axis=1),
         },
