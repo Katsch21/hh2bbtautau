@@ -22,11 +22,15 @@ def find_partons(events: ak.Array, pdgId: int, mother_pdgId: int=25):
 
 @producer(
         uses={
-        # nano columns
-        "event",
-        "isHardProcess"
-    },
-    sandbox=dev_sandbox("bash::$HBT_BASE/sandboxes/venv_columnar_tf.sh"),
+            # nano columns
+            "event",
+            "isHardProcess",
+            "nGenPart", "GenPart.*",
+        },
+        produces={
+            "genBpartonH", "genTaupartonH",
+        },
+        sandbox=dev_sandbox("bash::$HBT_BASE/sandboxes/venv_columnar.sh"),
 )
 def gen_HH_decay_products(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     """
