@@ -62,6 +62,7 @@ def add_config(
         "qcd",
         "h",
         "hh_ggf_bbtautau",
+        "graviton_hh_ggf_bbtautau_m400",
         "graviton_hh_ggf_bbtautau_m1250",
     ]
     for process_name in process_names:
@@ -138,6 +139,7 @@ def add_config(
         "tth_nonbb_powheg",
         # signals
         "hh_ggf_bbtautau_madgraph",
+        "graviton_hh_ggf_bbtautau_m400_madgraph",
         "graviton_hh_ggf_bbtautau_m1250_madgraph",
     ]
     for dataset_name in dataset_names:
@@ -244,25 +246,6 @@ def add_config(
             "tight": {"2016pre": 0.8819, "2016post": 0.8767, 2017: 0.7738, 2018: 0.7665}[btag_key],
         },
     })
-
-    # name of the btag_sf correction set
-    cfg.x.btag_sf_correction_set = "deepJet_shape"
-
-    # name of the deep tau tagger
-    # (used in the tec calibrator)
-    cfg.x.tau_tagger = "DeepTau2017v2p1"
-
-    # name of the MET phi correction set
-    # (used in the met_phi calibrator)
-    cfg.x.met_phi_correction_set = "{variable}_metphicorr_pfmet_{data_source}"
-
-    # names of electron correction sets and working points
-    # (used in the electron_sf producer)
-    cfg.x.electron_sf_names = ("UL-Electron-ID-SF", f"{year}{corr_postfix}", "wp80iso")
-
-    # names of muon correction sets and working points
-    # (used in the muon producer)
-    cfg.x.muon_sf_names = ("NUM_TightRelIso_DEN_TightIDandIPCut", f"{year}{corr_postfix}_UL")
 
     # jec configuration
     # https://twiki.cern.ch/twiki/bin/view/CMS/JECDataMC?rev=201
@@ -383,6 +366,25 @@ def add_config(
         "TimePtEta",
     ]
 
+    # name of the btag_sf correction set and jec uncertainties to propagate through
+    cfg.x.btag_sf = ("deepJet_shape", cfg.x.btag_sf_jec_sources)
+
+    # name of the deep tau tagger
+    # (used in the tec calibrator)
+    cfg.x.tau_tagger = "DeepTau2017v2p1"
+
+    # name of the MET phi correction set
+    # (used in the met_phi calibrator)
+    cfg.x.met_phi_correction_set = "{variable}_metphicorr_pfmet_{data_source}"
+
+    # names of electron correction sets and working points
+    # (used in the electron_sf producer)
+    cfg.x.electron_sf_names = ("UL-Electron-ID-SF", f"{year}{corr_postfix}", "wp80iso")
+
+    # names of muon correction sets and working points
+    # (used in the muon producer)
+    cfg.x.muon_sf_names = ("NUM_TightRelIso_DEN_TightIDandIPCut", f"{year}{corr_postfix}_UL")
+
     # load jec sources
     with open(os.path.join(thisdir, "jec_sources.yaml"), "r") as f:
         all_jec_sources = yaml.load(f, yaml.Loader)["names"]
@@ -427,7 +429,6 @@ def add_config(
             tags={"jec"},
             aux={"jec_source": jec_source},
         )
-        # selection dependent aliases
         add_shift_aliases(
             cfg,
             f"jec_{jec_source}",
@@ -437,9 +438,7 @@ def add_config(
                 "MET.pt": "MET.pt_{name}",
                 "MET.phi": "MET.phi_{name}",
             },
-            selection_dependent=True,
         )
-        # selection independent aliases
         # TODO: check the JEC de/correlation across years and the interplay with btag weights
         if ("" if jec_source == "Total" else jec_source) in cfg.x.btag_sf_jec_sources:
             add_shift_aliases(
@@ -462,7 +461,6 @@ def add_config(
             "MET.pt": "MET.pt_{name}",
             "MET.phi": "MET.phi_{name}",
         },
-        selection_dependent=True,
     )
 
     for i, (match, dm) in enumerate(itertools.product(["jet", "e"], [0, 1, 10, 11])):
@@ -477,7 +475,6 @@ def add_config(
                 "MET.pt": "MET.pt_{name}",
                 "MET.phi": "MET.phi_{name}",
             },
-            selection_dependent=True,
         )
 
     # start at id=50
@@ -621,7 +618,7 @@ def add_config(
         cfg.x.external_files.update(DotDict.wrap({
             # lumi files
             "lumi": {
-                "golden": ("/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions1/13TeV/Legacy_2017/Cert_294927-306462_13TeV_UL2017_Collisions17_GoldenJSON.txt", "v1"),  # noqa
+                "golden": ("/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions18/13TeV/Legacy_2018/Cert_314472-325175_13TeV_Legacy2018_Collisions18_JSON.txt", "v1"),  # noqa
                 "normtag": ("/afs/cern.ch/user/l/lumipro/public/Normtags/normtag_PHYSICS.json", "v1"),
             },
 
@@ -675,7 +672,7 @@ def add_config(
             "deterministic_seed", "pu_weight*", "btag_weight*", "cutflow.*",
         },
         "cf.MergeSelectionMasks": {
-            "mc_weight", "normalization_weight", "process_id", "category_ids", "cutflow.*",
+            "normalization_weight", "process_id", "category_ids", "cutflow.*",
         },
         "cf.UniteColumns": {
             "*",
