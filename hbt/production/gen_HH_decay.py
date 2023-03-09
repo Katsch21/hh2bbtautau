@@ -12,14 +12,6 @@ from columnflow.columnar_util import set_ak_column
 
 ak = maybe_import("awkward")
 
-def find_partons(events: ak.Array, pdgId: int, mother_pdgId: int=25):
-    abs_id = abs(events.GenPart.pdgId)
-    part = events.GenPart[abs_id == pdgId]
-    part = part[part.hasFlags("isHardProcess")& (abs(part.distinctParent.pdgId) == mother_pdgId)]
-    part = part[~ak.is_none(part, axis=1)]
-
-    return part
-
 @producer(
         uses={
             # nano columns
@@ -44,7 +36,14 @@ def gen_HH_decay_products(self: Producer, events: ak.Array, **kwargs) -> ak.Arra
 
         [[t1, b1, W1, q1/l, q2/n(, additional_w_decay_products)], [t2, ...], ...]
     """
-    # find hard top quarks
+
+    def find_partons(events: ak.Array, pdgId: int, mother_pdgId: int=25):
+        abs_id = abs(events.GenPart.pdgId)
+        part = events.GenPart[abs_id == pdgId]
+        part = part[part.hasFlags("isHardProcess")& (abs(part.distinctParent.pdgId) == mother_pdgId)]
+        part = part[~ak.is_none(part, axis=1)]
+
+        return part
     # from IPython import embed; embed()
     
     gen_b_from_h = find_partons(events=events, pdgId=5)
