@@ -12,7 +12,7 @@ from columnflow.util import maybe_import
 from columnflow.columnar_util import set_ak_column
 
 from hbt.production.hhbtag import hhbtag
-
+from IPython import embed
 
 np = maybe_import("numpy")
 ak = maybe_import("awkward")
@@ -81,7 +81,7 @@ def jet_selection(
     # least two jets pass the default mask (bjet candidates)
     valid_score_mask = (
         default_mask &
-        (ak.sum(default_mask, axis=1) >= 2) &
+        (ak.sum(default_mask, axis=1) >= 2) &##  #in original paper : 2
         (ak.num(lepton_results.x.lepton_pair, axis=1) == 2)
     )
     hhbjet_indices = score_indices[valid_score_mask[score_indices]][..., :2]
@@ -146,9 +146,10 @@ def jet_selection(
 
     # unique subjet matching
     metrics = events.FatJet.subjets.metric_table(events.Jet[hhbjet_indices])
+    #embed()
     subjets_match = (
         ak.all(ak.sum(metrics < 0.4, axis=3) == 1, axis=2) &
-        (ak.num(hhbjet_indices, axis=1) == 2)
+        (ak.num(hhbjet_indices, axis=1) >= 2)## #in original paper : 2
     )
     fatjet_mask = vanilla_fatjet_mask & subjets_match
 
@@ -177,7 +178,7 @@ def jet_selection(
 
     # final event selection
     jet_sel = (
-        (ak.sum(default_mask, axis=1) >= 2) &
+        (ak.sum(default_mask, axis=1) >= 2) & ## #in original paper : 2
         ak.fill_none(subjets_btagged, True)  # was none for events with no matched fatjet
     )
 
