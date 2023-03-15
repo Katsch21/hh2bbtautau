@@ -94,6 +94,14 @@ def add_variables(config: od.Config) -> None:
         binning=(100, 0, 1),
         x_title=r"DeepJet c vs b+bb+lepb discriminator (inverted c tagger)"
     )
+    # delta R:
+    config.add_variable(
+        name="delta_r",
+        expression="",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0, 1),
+        x_title=r""
+    )
 
     # fatjets:
     config.add_variable(
