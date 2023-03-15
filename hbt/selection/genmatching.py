@@ -5,6 +5,7 @@ Gen matching selection methods.
 from columnflow.selection import Selector, SelectionResult, selector
 from columnflow.util import maybe_import, dev_sandbox
 from collections import defaultdict, OrderedDict
+from IPython import embed
 
 from hbt.production.gen_HH_decay import gen_HH_decay_products
 
@@ -55,38 +56,33 @@ def genmatching_selector(
     unmatched_jets = ak.is_none(nearest_jets_to_genjets.pt, axis=1)
 
     matched_jets_to_genjets = nearest_jets_to_genjets[~unmatched_jets]
-    
-    from IPython import embed; embed()
-    selected_bjet_indices=jet_results.objects.Jet.HHBJet
+    embed()
+    selected_bjet_indices=ak.pad_none(jet_results.objects.Jet.HHBJet,2,axis=1)
+    padded_mmin=ak.pad_none(mmin,2,axis=1)
    
     # implement comparison selection and matching in array matched_and_selected
     # each genjet has (at least) one btag jet
-    matched_and_selected = ak.fromiter([np.isin(mmin[index], selected_bjet_indices[index]) for index in range(len(mmin))])
+    matched_and_selected = ak.from_iter([np.isin(selected_bjet_indices[index], padded_mmin[index]) for index in range(len(padded_mmin))])
 
     # event selection:
     at_least_one_jet_matched_event_selection=(
         (ak.sum(matched_and_selected, axis=1) >= 1)
     )
 
+    first_jet_matched_event_selection=(
+        matched_and_selected[:,0]
+    )
 
+    two_jet_matched_event_selection=(
+        (ak.sum(matched_and_selected, axis=1) == 2)
+    )
 
-
+    print("genmatching_done")
     return events, SelectionResult(
     steps={
         # Gen Matching Steps
-        "gen_matched_1":at_least_one_jet_matched_event_selection
+        "gen_matched_1":at_least_one_jet_matched_event_selection,
+        "first_matched":first_jet_matched_event_selection,
+        "gen_matched_2":two_jet_matched_event_selection,
         },
-    objects={
-        "Jet": {
-        # No object filters here
-        # maybe jet default mask?
-        },
-    },
-    aux={
-        # jet mask that lead to the jet_indices
-        # "fatjet_mask": fatjet_mask,
-        # "jet_mask": default_jet_mask,
-        # used to determine sum of weights in increment_stats
-        # "n_central_jets": ak.num(jet_indices, axis=1),
-    },
     )

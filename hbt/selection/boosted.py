@@ -29,6 +29,32 @@ np = maybe_import("numpy")
 ak = maybe_import("awkward")
 
 
+
+def print_efficiency(results, skip_steps_list1, skip_steps_list2, name_selection1, name_selection2):
+    """
+    calculate and print efficiency between two selections, given by the steps to skip in results
+    """
+    results_reduced1 = reduce(
+        and_,
+        [mask for step_name, mask in results.steps.items() if step_name not in skip_steps_list1],
+    )
+    results_reduced2 = reduce(
+        and_,
+        [mask for step_name, mask in results.steps.items() if step_name not in skip_steps_list2],
+    )
+
+    n_events_results1=ak.sum(results_reduced1, axis=0)
+    n_events_results2=ak.sum(results_reduced2, axis=0)
+
+    print("n_events",name_selection1,n_events_results1)
+    print("n_events",name_selection2,n_events_results2)
+
+    efficiency=n_events_results2/n_events_results1
+    print("efficiency between",name_selection1,"and",name_selection2,efficiency)
+
+
+
+
 @selector(
     uses={boosted_jet_selector, lepton_selection, trigger_selection,
         process_ids, increment_stats, attach_coffea_behavior,
@@ -87,7 +113,29 @@ def boosted(
         # btag weights
         events = self[btag_weights](events, results.x.jet_mask, **kwargs)
 
-    # embed()
+    events = self[gen_HH_decay_products](events, **kwargs)
+
+    events, genmatching_results = self[genmatching_selector](events, jet_collection=events.Jet, jet_results=jet_results)
+    results += genmatching_results
+
+    print_efficiency(results, skip_steps_list1=["gen_matched_1","first_matched","gen_matched_2"], 
+                     skip_steps_list2=["first_matched","gen_matched_2"], name_selection1="jet_selection", 
+                     name_selection2="gen_matched_1")
+    
+    print_efficiency(results, skip_steps_list1=["gen_matched_1","first_matched","gen_matched_2"], 
+                     skip_steps_list2=["gen_matched_2"], name_selection1="jet_selection", 
+                     name_selection2="first_matched")
+    
+    print_efficiency(results, skip_steps_list1=["gen_matched_1","first_matched","gen_matched_2"], 
+                     skip_steps_list2=[], name_selection1="jet_selection", 
+                     name_selection2="gen_matched_2")
+    
+    print_efficiency(results, skip_steps_list1=["first_matched","gen_matched_2"], 
+                     skip_steps_list2=["gen_matched_2"], name_selection1="gen_matched_1", 
+                     name_selection2="first_matched")
+
+    #embed()
+
     event_sel = reduce(and_, results.steps.values())
     results.main["event"] = event_sel
 
@@ -104,45 +152,5 @@ def boosted(
 
     # some cutflow features
     events = self[cutflow_features](events, **kwargs)
-
-    events = self[gen_HH_decay_products](events, **kwargs)
-
-    events = self[genmatching_selector](events, jet_collection=events.Jet, jet_results=jet_results)
-
-    # already in genmatching.py:
-    
-    # # match genJets to genPartons from H
-    # # get GenJets with b as partonFlavour
-    # genBjets = events.GenJet[abs(events.GenJet.partonFlavour) == 5]
-
-    # # calculate deltaR between genBjets and gen b partons from H
-    # nearest_genjet_to_parton = events.genBpartonH.nearest(genBjets, threshold=0.4)
-
-    # # filter unmatched cases
-    # unmatched_genjets = ak.is_none(nearest_genjet_to_parton.pt, axis=1)
-
-    # matched_genjets_to_parton = nearest_genjet_to_parton[~unmatched_genjets]
-
-    # # calculated deltaR between matched Gen Jets and Jets
-    # nearest_jets_to_genjets = matched_genjets_to_parton.nearest(events.Jet, threshold=0.4)
-    
-    # metrics_jets_to_genjets = matched_genjets_to_parton.metric_table(events.Jet, axis=1)
-    
-    # mmin = ak.argmin(metrics_jets_to_genjets, axis=2, keepdims=True)
-    # metric = ak.firsts(metrics_jets_to_genjets[mmin], axis=2)
-    
-    # mmin = ak.firsts(mmin.mask[metric <= 0.4], axis=2)
-    
-    
-
-
-    # # filter unmatched cases
-    # unmatched_jets = ak.is_none(nearest_jets_to_genjets.pt, axis=1)
-
-    # matched_jets_to_genjets = nearest_jets_to_genjets[~unmatched_jets]
-
-
-
-
 
     return events, results
