@@ -751,9 +751,8 @@ def add_config(
             main_campaign, sub_campaign = full_campaign.split("-", 1)
             lfn_base = law.LocalDirectoryTarget(
                 f"store/{dataset_inst.data_source}/{main_campaign}/{dataset_id}/{tier}/{sub_campaign}/0",
-                fs=f"local_{cfg.campaign.x.custom['name']}",
+                fs=f"wlcg_{cfg.campaign.x.custom['name']}",
             )
-            from IPython import embed; embed()
             # loop though files and interpret paths as lfns
             return [
                 lfn_base.child(basename, type="f").path
