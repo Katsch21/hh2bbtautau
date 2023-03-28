@@ -4,6 +4,8 @@ Gen matching selection methods.
 
 from columnflow.selection import Selector, SelectionResult, selector
 from columnflow.util import maybe_import, dev_sandbox
+from columnflow.columnar_util import set_ak_column
+
 from collections import defaultdict, OrderedDict
 from IPython import embed
 
@@ -12,7 +14,8 @@ from hbt.production.gen_HH_decay import gen_HH_decay_products
 
 np = maybe_import("numpy")
 ak = maybe_import("awkward")
-
+foo = {1,2,3,4,5,}
+bar={"bla": 1,}
 @selector(
     uses={
         "Jet.pt", "Jet.eta", "Jet.phi", "Jet.jetId", "Jet.puId",
@@ -20,6 +23,9 @@ ak = maybe_import("awkward")
         "nGenVisTau", "GenVisTau.*", "Jet.genJetIdx", "Tau.genPartIdx",
         gen_HH_decay_products.PRODUCES,
     },
+    # produces={
+    #     # "Jet.GenmatchedJets", "Jet.GenmatchedHHBtagJets"
+    # },
     sandbox=dev_sandbox("bash::$HBT_BASE/sandboxes/venv_columnar.sh"),
 )
 def genmatching_selector(
@@ -56,7 +62,6 @@ def genmatching_selector(
     unmatched_jets = ak.is_none(nearest_jets_to_genjets.pt, axis=1)
 
     matched_jets_to_genjets = nearest_jets_to_genjets[~unmatched_jets]
-    embed()
     selected_bjet_indices=ak.pad_none(jet_results.objects.Jet.HHBJet,2,axis=1)
     padded_mmin=ak.pad_none(mmin,2,axis=1)
    
@@ -77,6 +82,11 @@ def genmatching_selector(
         (ak.sum(matched_and_selected, axis=1) == 2)
     )
 
+    # new variables for plotting:
+    # events = set_ak_column(events, "Jet.GenmatchedJets", events.Jet[mmin])
+    # events = set_ak_column(events, "Jet.GenmatchedHHBtagJets", events.Jet[selected_bjet_indices][matched_and_selected])
+
+    embed()
     print("genmatching_done")
     return events, SelectionResult(
     steps={
@@ -85,4 +95,10 @@ def genmatching_selector(
         "first_matched":first_jet_matched_event_selection,
         "gen_matched_2":two_jet_matched_event_selection,
         },
+    objects={
+        "Jet":{
+            "GenmatchedJets": mmin,
+            "GenmatchedHHBtagJets": matched_and_selected,
+            }
+        }
     )

@@ -89,8 +89,8 @@ def add_variables(config: od.Config) -> None:
     
     # btags:
     config.add_variable(
-        name="jet_btag_deepflavb",
-        expression="Jet.btagDeepFlavB",
+        name="jet1_btag_deepflavb",
+        expression="Jet.btagDeepFlavB[:,0]",
         null_value=EMPTY_FLOAT,
         binning=(100, 0, 1),
         x_title=r"DeepJet b+bb+lepb tag discriminator "
@@ -104,11 +104,33 @@ def add_variables(config: od.Config) -> None:
     )
     # delta R:
     config.add_variable(
-        name="delta_r",
-        expression="",
+        name="delta_r_2_matches",
+        expression="delta_r_2_matches",
         null_value=EMPTY_FLOAT,
         binning=(100, 0, 1),
-        x_title=r""
+        x_title=r"Delta R of two matched jets"
+    )
+    config.add_variable(
+        name="delta_r_btag",
+        expression="delta_r_btag",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0, 1),
+        x_title=r"Delta R of two HHbtagged jets"
+    )
+    # pt of first matched jet:
+    config.add_variable(
+        name="first_pt_2_matches",
+        expression="fiest_pt_2_matches",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0, 1),
+        x_title=r"pt of first matched jet"
+    )
+    config.add_variable(
+        name="first_pt_btag",
+        expression="first_pt_btag",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0, 1),
+        x_title=r"pt of first matched HHbjet"
     )
 
     # fatjets:
