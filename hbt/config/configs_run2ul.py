@@ -657,6 +657,7 @@ def add_config(
             "Tau.idDeepTau2017v2p1VSmu", "Tau.idDeepTau2017v2p1VSjet", "Tau.genPartFlav",
             "Tau.decayMode",
             "MET.pt", "MET.phi", "MET.significance", "MET.covXX", "MET.covXY", "MET.covYY",
+            "nGenPart", "GenPart.*", "nGenJet", 'GenJet.*','GenVisTau.*','nGenVisTau',
             "PV.npvs",
             ####################
             ### my own variables
@@ -672,6 +673,10 @@ def add_config(
             # columns added during selection
             "channel_id", "process_id", "category_ids", "mc_weight", "pdf_weight*", "murmuf_weight*",
             "leptons_os", "tau2_isolated", "single_triggered", "cross_triggered",
+            "genBpartonH.pt", "genBpartonH.eta", "genBpartonH.phi", "genBpartonH.mass", 
+            "genTaupartonH.pt", "genTaupartonH.eta", "genTaupartonH.phi", "genTaupartonH.mass",
+            "GenmatchedJets.pt", "GenmatchedJets.eta", "GenmatchedJets.phi", "GenmatchedJets.mass", 
+            "GenmatchedHHBtagJets.pt", "GenmatchedHHBtagJets.eta", "GenmatchedHHBtagJets.phi", "GenmatchedHHBtagJets.mass", 
             "deterministic_seed", "pu_weight*", "btag_weight*", "cutflow.*",
         },
         "cf.MergeSelectionMasks": {

@@ -14,8 +14,7 @@ from hbt.production.gen_HH_decay import gen_HH_decay_products
 
 np = maybe_import("numpy")
 ak = maybe_import("awkward")
-foo = {1,2,3,4,5,}
-bar={"bla": 1,}
+
 @selector(
     uses={
         "Jet.pt", "Jet.eta", "Jet.phi", "Jet.jetId", "Jet.puId",
@@ -24,7 +23,7 @@ bar={"bla": 1,}
         gen_HH_decay_products.PRODUCES,
     },
     # produces={
-    #     # "Jet.GenmatchedJets", "Jet.GenmatchedHHBtagJets"
+    #     "GenmatchedJets", "GenmatchedHHBtagJets",
     # },
     sandbox=dev_sandbox("bash::$HBT_BASE/sandboxes/venv_columnar.sh"),
 )
@@ -62,12 +61,12 @@ def genmatching_selector(
     unmatched_jets = ak.is_none(nearest_jets_to_genjets.pt, axis=1)
 
     matched_jets_to_genjets = nearest_jets_to_genjets[~unmatched_jets]
-    selected_bjet_indices=ak.pad_none(jet_results.objects.Jet.HHBJet,2,axis=1)
+    selected_hhbjet_indices=ak.pad_none(jet_results.objects.Jet.HHBJet,2,axis=1)
     padded_mmin=ak.pad_none(mmin,2,axis=1)
    
     # implement comparison selection and matching in array matched_and_selected
     # each genjet has (at least) one btag jet
-    matched_and_selected = ak.from_iter([np.isin(selected_bjet_indices[index], padded_mmin[index]) for index in range(len(padded_mmin))])
+    matched_and_selected = ak.from_iter([np.isin(selected_hhbjet_indices[index], padded_mmin[index]) for index in range(len(padded_mmin))])
 
     # event selection:
     at_least_one_jet_matched_event_selection=(
@@ -83,10 +82,10 @@ def genmatching_selector(
     )
 
     # new variables for plotting:
-    # events = set_ak_column(events, "Jet.GenmatchedJets", events.Jet[mmin])
-    # events = set_ak_column(events, "Jet.GenmatchedHHBtagJets", events.Jet[selected_bjet_indices][matched_and_selected])
+    
+    # events = set_ak_column(events, "GenmatchedJets", events.Jet[mmin])
+    # events = set_ak_column(events, "GenmatchedHHBtagJets", events.Jet[selected_hhbjet_indices][matched_and_selected])
 
-    embed()
     print("genmatching_done")
     return events, SelectionResult(
     steps={

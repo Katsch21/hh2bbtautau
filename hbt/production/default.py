@@ -15,6 +15,8 @@ from hbt.production.features import features
 from hbt.production.weights import normalized_pu_weight, normalized_pdf_weight, normalized_murmuf_weight
 from hbt.production.btag import normalized_btag_weights
 from hbt.production.tau import tau_weights, trigger_weights
+from hbt.production.delta_r import delta_r, get_pt
+from hbt.selection.genmatching import genmatching_selector
 
 
 ak = maybe_import("awkward")
@@ -24,15 +26,17 @@ ak = maybe_import("awkward")
     uses={
         category_ids, features, normalization_weights, normalized_pdf_weight,
         normalized_murmuf_weight, normalized_pu_weight, normalized_btag_weights,
-        tau_weights, electron_weights, muon_weights, trigger_weights,
+        tau_weights, electron_weights, muon_weights, trigger_weights, 
+        genmatching_selector.PRODUCES, genmatching_selector, delta_r, get_pt,
     },
     produces={
         category_ids, features, normalization_weights, normalized_pdf_weight,
         normalized_murmuf_weight, normalized_pu_weight, normalized_btag_weights,
-        tau_weights, electron_weights, muon_weights, trigger_weights,
+        tau_weights, electron_weights, muon_weights, trigger_weights, delta_r, get_pt,
     },
 )
 def default(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
+    print("I'm in default!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     # category ids
     events = self[category_ids](events, **kwargs)
 
@@ -67,5 +71,10 @@ def default(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
 
         # trigger weights
         events = self[trigger_weights](events, **kwargs)
+
+    # mc-only variables
+    # if self.dataset_inst.is_mc:
+    #     events = self[delta_r](events, **kwargs)
+    #     events = self[get_pt](events, **kwargs)
 
     return events

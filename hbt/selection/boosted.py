@@ -67,7 +67,7 @@ def print_efficiency(results, skip_steps_list1, skip_steps_list2, name_selection
         trigger_selection, lepton_selection, boosted_jet_selector,
         process_ids, increment_stats, attach_coffea_behavior,
         btag_weights, pu_weight, mc_weight, pdf_weights, murmuf_weights,
-        cutflow_features,
+        cutflow_features, gen_HH_decay_products, genmatching_selector, delta_r, get_pt,
         jet_selection
     },
     sandbox=dev_sandbox("bash::$HBT_BASE/sandboxes/venv_columnar_tf.sh"),
@@ -153,5 +153,7 @@ def boosted(
 
     # some cutflow features
     events = self[cutflow_features](events, results.objects, **kwargs)
+
+    embed()
 
     return events, results

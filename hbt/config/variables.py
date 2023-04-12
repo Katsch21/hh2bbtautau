@@ -107,29 +107,29 @@ def add_variables(config: od.Config) -> None:
         name="delta_r_2_matches",
         expression="delta_r_2_matches",
         null_value=EMPTY_FLOAT,
-        binning=(100, 0, 1),
+        binning=(100, 0, 5),
         x_title=r"Delta R of two matched jets"
     )
     config.add_variable(
         name="delta_r_btag",
         expression="delta_r_btag",
         null_value=EMPTY_FLOAT,
-        binning=(100, 0, 1),
+        binning=(100, 0, 5),
         x_title=r"Delta R of two HHbtagged jets"
     )
     # pt of first matched jet:
     config.add_variable(
         name="first_pt_2_matches",
-        expression="fiest_pt_2_matches",
+        expression="first_pt_2_matches",
         null_value=EMPTY_FLOAT,
-        binning=(100, 0, 1),
+        binning=(100, 0.0, 400.0),
         x_title=r"pt of first matched jet"
     )
     config.add_variable(
         name="first_pt_btag",
         expression="first_pt_btag",
         null_value=EMPTY_FLOAT,
-        binning=(100, 0, 1),
+        binning=(100, 0.0, 400.0),
         x_title=r"pt of first matched HHbjet"
     )
 
