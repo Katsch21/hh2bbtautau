@@ -135,8 +135,6 @@ def boosted(
                      skip_steps_list2=["gen_matched_2"], name_selection1="gen_matched_1", 
                      name_selection2="first_matched")
 
-    #embed()
-
     event_sel = reduce(and_, results.steps.values())
     results.main["event"] = event_sel
 
@@ -154,6 +152,5 @@ def boosted(
     # some cutflow features
     events = self[cutflow_features](events, results.objects, **kwargs)
 
-    embed()
 
     return events, results
