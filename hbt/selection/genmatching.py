@@ -95,8 +95,14 @@ def genmatching_selector(
         "gen_matched_2":two_jet_matched_event_selection,
         },
     objects={
-        "Jet":{
-            "GenmatchedJets": mmin,
+        # "GenPart":{
+            # "GenPartons": genBpartonH. , # indices einbauen!
+        # }
+        # "GenJet":{
+            #" GenmatchedGenJets":
+        # }
+        "Jet":{ 
+            "GenmatchedJets": mmin, # detector jets
             "GenmatchedHHBtagJets": matched_and_selected,
             }
         }
