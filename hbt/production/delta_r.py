@@ -20,15 +20,18 @@ np = maybe_import("numpy")
 set_ak_column_f32 = functools.partial(set_ak_column, value_type=np.float32)
 set_ak_column_i32 = functools.partial(set_ak_column, value_type=np.int32)
 
-
+# old producer delta_r
+# now using genmatched_delta_r
 @producer(
     uses={
        "GenmatchedJets.*", "GenmatchedHHBtagJets.*", genmatching_selector, "nGenJet", "Jet.*", 
+       # "GenPartons.*", "GenmatchedGenJets.*", 
         attach_coffea_behavior
     },
     produces={
         # new columns
         "delta_r_2_matches", "delta_r_HHbtag",
+        # "delta_r_partons", "delta_r_genmatchedgenjets"
     },
 )
 def delta_r(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
@@ -48,29 +51,30 @@ def delta_r(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     #     return mval
 
 
-    # print("delta_r uses:", self.uses)
-
     # TODO: Also implement delta r values for partons and for matched genjets.
-    padded_GenmatchedJets_eta = ak.pad_none(events.GenmatchedJets.eta, 2, axis=1)
-    padded_GenmatchedHHBtagJets_eta = ak.pad_none(events.GenmatchedHHBtagJets.eta, 2, axis=1)
-    padded_GenmatchedJets_phi = ak.pad_none(events.GenmatchedJets.phi, 2, axis=1)
-    padded_GenmatchedHHBtagJets_phi = ak.pad_none(events.GenmatchedHHBtagJets.phi, 2, axis=1)
+    # padded_GenmatchedJets_eta = ak.pad_none(events.GenmatchedJets.eta, 2, axis=1)
+    # padded_GenmatchedHHBtagJets_eta = ak.pad_none(events.GenmatchedHHBtagJets.eta, 2, axis=1)
+    # padded_GenmatchedJets_phi = ak.pad_none(events.GenmatchedJets.phi, 2, axis=1)
+    # padded_GenmatchedHHBtagJets_phi = ak.pad_none(events.GenmatchedHHBtagJets.phi, 2, axis=1)
 
-    padded_nan_GenmatchedJets_eta = ak.fill_none(padded_GenmatchedJets_eta, np.nan, axis=1)
-    padded_nan_GenmatchedHHBtagJets_eta = ak.fill_none(padded_GenmatchedHHBtagJets_eta, np.nan, axis=1)
-    padded_nan_GenmatchedJets_phi = ak.fill_none(padded_GenmatchedJets_phi, np.nan, axis=1)
-    padded_nan_GenmatchedHHBtagJets_phi = ak.fill_none(padded_GenmatchedHHBtagJets_phi, np.nan, axis=1)
+    # padded_nan_GenmatchedJets_eta = ak.fill_none(padded_GenmatchedJets_eta, np.nan, axis=1)
+    # padded_nan_GenmatchedHHBtagJets_eta = ak.fill_none(padded_GenmatchedHHBtagJets_eta, np.nan, axis=1)
+    # padded_nan_GenmatchedJets_phi = ak.fill_none(padded_GenmatchedJets_phi, np.nan, axis=1)
+    # padded_nan_GenmatchedHHBtagJets_phi = ak.fill_none(padded_GenmatchedHHBtagJets_phi, np.nan, axis=1)
 
-    def delta_r_jets(a_eta, a_phi, b_eta, b_phi):
-        mval = ak.Array(np.hypot(a_eta - b_eta, (a_phi - b_phi + np.pi) % (2 * np.pi) - np.pi))
-        return mval
+    # def delta_r_jets(a_eta, a_phi, b_eta, b_phi):
+    #     mval = ak.Array(np.hypot(a_eta - b_eta, (a_phi - b_phi + np.pi) % (2 * np.pi) - np.pi))
+    #     return mval
     
-    delta_r_2_matches = delta_r_jets(padded_nan_GenmatchedJets_eta[:,0],padded_nan_GenmatchedJets_phi[:,0],padded_nan_GenmatchedJets_eta[:,1],padded_nan_GenmatchedJets_phi[:,1])
-    delta_r_2_matches = ak.where(np.isnan(delta_r_2_matches), EMPTY_FLOAT, delta_r_2_matches)
-    delta_r_hhbtag = delta_r_jets(padded_nan_GenmatchedHHBtagJets_eta[:,0],padded_nan_GenmatchedHHBtagJets_phi[:,0],padded_nan_GenmatchedHHBtagJets_eta[:,1],padded_nan_GenmatchedHHBtagJets_phi[:,1])
-    delta_r_hhbtag = ak.where(np.isnan(delta_r_hhbtag), EMPTY_FLOAT, delta_r_hhbtag)
+    # delta_r_2_matches = delta_r_jets(padded_nan_GenmatchedJets_eta[:,0],padded_nan_GenmatchedJets_phi[:,0],padded_nan_GenmatchedJets_eta[:,1],padded_nan_GenmatchedJets_phi[:,1])
+    # delta_r_2_matches = ak.where(np.isnan(delta_r_2_matches), EMPTY_FLOAT, delta_r_2_matches)
+    # delta_r_hhbtag = delta_r_jets(padded_nan_GenmatchedHHBtagJets_eta[:,0],padded_nan_GenmatchedHHBtagJets_phi[:,0],padded_nan_GenmatchedHHBtagJets_eta[:,1],padded_nan_GenmatchedHHBtagJets_phi[:,1])
+    # delta_r_hhbtag = ak.where(np.isnan(delta_r_hhbtag), EMPTY_FLOAT, delta_r_hhbtag)
 
-    embed()
+
+    # old version of calculating delta R values
+
+    # embed()
     # test_delta_r = delta_r_jets(padded_GenmatchedJets[:,0],padded_GenmatchedJets[:,1], axis=1)
     # embed()
     # mask_1 = ak.num(events.GenmatchedJets, axis=1) == 2
@@ -102,7 +106,7 @@ def delta_r(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
 
 @producer(
     uses={
-       "GenmatchedJets.*", "GenmatchedHHBtagJets.*", genmatching_selector, "nGenJet", "Jet.*", 
+       "GenmatchedJets.*", "GenmatchedHHBtagJets.*", genmatching_selector, "nGenJet", "Jet.*",
         attach_coffea_behavior
     },
     produces={
@@ -118,18 +122,29 @@ def genmatched_delta_r(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     collections = {x: {"type_name" : "Jet"} for x in ["GenmatchedJets", "GenmatchedHHBtagJets"]}
     events = self[attach_coffea_behavior](events, collections=collections, **kwargs)
 
-    all_deltars = events.GenmatchedJets.metric_table(events.GenmatchedJets)
+    # calculate all possible delta R values (all permutations):
+    all_deltars_genmatchedjets = events.GenmatchedJets.metric_table(events.GenmatchedJets)
+    all_deltars_hhbtagjets = events.GenmatchedHHBtagJets.metric_table(events.GenmatchedHHBtagJets)
 
-    minimal_deltar_permutation = ak.firsts(all_deltars)
+    # just take first entry as minimal permutation:
+    minimal_deltar_permutation_genmatchedjets = ak.firsts(all_deltars_genmatchedjets)
+    minimal_deltar_permutation_hhbtagjets = ak.firsts(all_deltars_hhbtagjets)
 
-    real_deltars = minimal_deltar_permutation[minimal_deltar_permutation != 0]
+    # exclude delta_r = 0, because it is the distance from one jet to itself
+    real_deltars_genmatchedjets = minimal_deltar_permutation_genmatchedjets[minimal_deltar_permutation_genmatchedjets != 0]
+    real_deltars_hhbtagjets = minimal_deltar_permutation_hhbtagjets[minimal_deltar_permutation_hhbtagjets != 0]
 
-    mask = ak.num(events.GenmatchedJets, axis=1) == 2
+    # mask: only events with at least 2 jets
+    mask_genmatchedjets = ak.num(events.GenmatchedJets, axis=1) == 2
+    mask_hhbtagjets = ak.num(events.GenmatchedHHBtagJets, axis=1) == 2
 
-    delta_rs = ak.where(mask, ak.flatten(real_deltars), EMPTY_FLOAT)
+    # delta r values 
+    delta_rs_genmatchedjets = ak.where(mask_genmatchedjets, ak.flatten(real_deltars_genmatchedjets), EMPTY_FLOAT)
+    delta_rs_hhbtagjets = ak.where(mask_hhbtagjets, ak.flatten(real_deltars_hhbtagjets), EMPTY_FLOAT)
 
-    events = set_ak_column_f32(events, "delta_r_2_matches", delta_rs)
-    embed()
+    events = set_ak_column_f32(events, "delta_r_2_matches", delta_rs_genmatchedjets)
+    events = set_ak_column_f32(events, "delta_r_HHbtag", delta_rs_hhbtagjets)
+    # embed() 
     # events = set_ak_column_f32(events, "delta_r_HHbtag", delta_r_hhbtag[:,np.newaxis])
     return events
 
@@ -140,6 +155,7 @@ def genmatched_delta_r(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     produces={
         # new columns
         "first_pt_2_matches", "first_pt_btag",
+        # "first_pt_partons", "first_pt_genmatchedgenjets"
     },
 )
 def get_pt(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
