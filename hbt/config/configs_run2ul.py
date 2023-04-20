@@ -669,7 +669,7 @@ def add_config(
             # deeptau
             "Tau.rawDeepTau2017v2p1VSe", "Tau.rawDeepTau2017v2p1VSjet", "Tau.rawDeepTau2017v2p1VSmu",
             # delta r plots
-            "delta_r_2_matches", "delta_r_btag", "first_pt_2_matches", "first_pt_btag",
+            "delta_r_2_matches", "delta_r_btag", "first_pt_2_matches", "first_pt_btag", "delta_r_HHbtag",
             # columns added during selection
             "channel_id", "process_id", "category_ids", "mc_weight", "pdf_weight*", "murmuf_weight*",
             "leptons_os", "tau2_isolated", "single_triggered", "cross_triggered",
