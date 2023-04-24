@@ -22,9 +22,9 @@ ak = maybe_import("awkward")
         "nGenVisTau", "GenVisTau.*", "Jet.genJetIdx", "Tau.genPartIdx",
         gen_HH_decay_products.PRODUCES,
     },
-    # produces={
-    #     "GenmatchedJets", "GenmatchedHHBtagJets",
-    # },
+    produces={
+        "GenmatchedJets", "GenmatchedHHBtagJets", "GenBPartons",
+    },
     sandbox=dev_sandbox("bash::$HBT_BASE/sandboxes/venv_columnar.sh"),
 )
 def genmatching_selector(
@@ -64,6 +64,8 @@ def genmatching_selector(
     selected_hhbjet_indices=ak.pad_none(jet_results.objects.Jet.HHBJet,2,axis=1)
     padded_mmin=ak.pad_none(mmin,2,axis=1)
    
+    embed()
+
     # implement comparison selection and matching in array matched_and_selected
     # each genjet has (at least) one btag jet
     matched_and_selected = ak.from_iter([np.isin(selected_hhbjet_indices[index], padded_mmin[index]) for index in range(len(padded_mmin))])
@@ -81,6 +83,18 @@ def genmatching_selector(
         (ak.sum(matched_and_selected, axis=1) == 2)
     )
 
+    def find_partons_id(events: ak.Array, pdgId: int, mother_pdgId: int=25):
+        abs_id = abs(events.GenPart.pdgId)
+        part_id=ak.local_index(events.GenPart, axis=1)
+        part = events.GenPart[abs_id == pdgId]
+        part_id = part_id[abs_id == pdgId]
+        part_id = part_id[part.hasFlags("isHardProcess")& (abs(part.distinctParent.pdgId) == mother_pdgId)]
+        part = part[part.hasFlags("isHardProcess")& (abs(part.distinctParent.pdgId) == mother_pdgId)]
+        part_id = part_id[~ak.is_none(part, axis=1)]
+        return part_id
+
+    part_id = find_partons_id(events, pdgId=5, mother_pdgId=25)
+
     # new variables for plotting:
     
     # events = set_ak_column(events, "GenmatchedJets", events.Jet[mmin])
@@ -95,9 +109,9 @@ def genmatching_selector(
         "gen_matched_2":two_jet_matched_event_selection,
         },
     objects={
-        # "GenPart":{
-            # "GenPartons": genBpartonH. , # indices einbauen!
-        # }
+        "GenPart":{
+            "GenBPartons": part_id,
+        },
         # "GenJet":{
             #" GenmatchedGenJets":
         # }

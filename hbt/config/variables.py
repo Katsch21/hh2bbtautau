@@ -104,6 +104,13 @@ def add_variables(config: od.Config) -> None:
     )
     # delta R:
     config.add_variable(
+        name="delta_r_genbpartons",
+        expression="delta_r_genbpartons",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0, 1.5),
+        x_title=r"Delta R of two Gen Partons"
+    )
+    config.add_variable(
         name="delta_r_2_matches",
         expression="delta_r_2_matches",
         null_value=EMPTY_FLOAT,
@@ -118,6 +125,13 @@ def add_variables(config: od.Config) -> None:
         x_title=r"Delta R of two HHbtagged jets"
     )
     # pt of first matched jet:
+    config.add_variable(
+        name="first_pt_genbpartons",
+        expression="first_pt_genbpartons",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0.0, 400.0),
+        x_title=r"pt of first Gen Parton"
+    )
     config.add_variable(
         name="first_pt_2_matches",
         expression="first_pt_2_matches",

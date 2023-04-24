@@ -22,10 +22,10 @@ set_ak_column_i32 = functools.partial(set_ak_column, value_type=np.int32)
 
 # old producer delta_r
 # now using genmatched_delta_r
+# TODO: check if delta_r is still used / if set_ak_columns are still saved
 @producer(
     uses={
        "GenmatchedJets.*", "GenmatchedHHBtagJets.*", genmatching_selector, "nGenJet", "Jet.*", 
-       # "GenPartons.*", "GenmatchedGenJets.*", 
         attach_coffea_behavior
     },
     produces={
@@ -36,8 +36,7 @@ set_ak_column_i32 = functools.partial(set_ak_column, value_type=np.int32)
 )
 def delta_r(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     """
-    Creates new columns: 'delta_r_2_matches' for the delta r values of the first two genmatched jets
-    and 'delta_r_HHbtag' for the delta r values of the first two HHBtag jets.
+    Creates new columns: 'delta_r_2_matches' for the delta r values of the first two gegenmatched_delta_r
     """
     events = self[attach_coffea_behavior](events, **kwargs)
 
@@ -50,8 +49,6 @@ def delta_r(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     #     mval = ak.Array(np.hypot(a.eta - b.eta, (a.phi - b.phi + np.pi) % (2 * np.pi) - np.pi))
     #     return mval
 
-
-    # TODO: Also implement delta r values for partons and for matched genjets.
     # padded_GenmatchedJets_eta = ak.pad_none(events.GenmatchedJets.eta, 2, axis=1)
     # padded_GenmatchedHHBtagJets_eta = ak.pad_none(events.GenmatchedHHBtagJets.eta, 2, axis=1)
     # padded_GenmatchedJets_phi = ak.pad_none(events.GenmatchedJets.phi, 2, axis=1)
@@ -74,7 +71,7 @@ def delta_r(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
 
     # old version of calculating delta R values
 
-    # embed()
+    # embed()delta_r_2_matches
     # test_delta_r = delta_r_jets(padded_GenmatchedJets[:,0],padded_GenmatchedJets[:,1], axis=1)
     # embed()
     # mask_1 = ak.num(events.GenmatchedJets, axis=1) == 2
@@ -106,12 +103,12 @@ def delta_r(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
 
 @producer(
     uses={
-       "GenmatchedJets.*", "GenmatchedHHBtagJets.*", genmatching_selector, "nGenJet", "Jet.*",
+       "GenmatchedJets.*", "GenmatchedHHBtagJets.*", "GenBPartons.*", genmatching_selector, "nGenJet", "Jet.*",
         attach_coffea_behavior
     },
     produces={
         # new columns
-        "delta_r_2_matches", "delta_r_HHbtag",
+        "delta_r_2_matches", "delta_r_HHbtag", "delta_r_genbpartons",
     },
 )
 def genmatched_delta_r(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
@@ -119,33 +116,25 @@ def genmatched_delta_r(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     Creates new columns: 'delta_r_2_matches' for the delta r values of the first two genmatched jets
     and 'delta_r_HHbtag' for the delta r values of the first two HHBtag jets.
     """
+    # TODO: Also implement delta r values for partons and for matched genjets.
     collections = {x: {"type_name" : "Jet"} for x in ["GenmatchedJets", "GenmatchedHHBtagJets"]}
+    collections.update({y: {"type_name" : "GenParticle", "skip_fields": "*Idx*G",} for y in ["GenBPartons"]}) # syntax correct?
+
+    
     events = self[attach_coffea_behavior](events, collections=collections, **kwargs)
 
     # calculate all possible delta R values (all permutations):
-    all_deltars_genmatchedjets = events.GenmatchedJets.metric_table(events.GenmatchedJets)
-    all_deltars_hhbtagjets = events.GenmatchedHHBtagJets.metric_table(events.GenmatchedHHBtagJets)
+    def calculate_delta_r(array: ak.Array, num_objects: int=2):
+        all_deltars = array.metric_table(array)
+        min_deltars_permutations = ak.firsts(all_deltars)
+        real_deltars = min_deltars_permutations[min_deltars_permutations != 0]
+        mask = ak.num(array, axis=1) == num_objects
+        return ak.where(mask, ak.flatten(real_deltars), EMPTY_FLOAT)
 
-    # just take first entry as minimal permutation:
-    minimal_deltar_permutation_genmatchedjets = ak.firsts(all_deltars_genmatchedjets)
-    minimal_deltar_permutation_hhbtagjets = ak.firsts(all_deltars_hhbtagjets)
+    events = set_ak_column_f32(events, "delta_r_genbpartons", calculate_delta_r(events.GenBPartons))
+    events = set_ak_column_f32(events, "delta_r_2_matches", calculate_delta_r(events.GenmatchedJets))
+    events = set_ak_column_f32(events, "delta_r_HHbtag", calculate_delta_r(events.GenmatchedHHBtagJets))
 
-    # exclude delta_r = 0, because it is the distance from one jet to itself
-    real_deltars_genmatchedjets = minimal_deltar_permutation_genmatchedjets[minimal_deltar_permutation_genmatchedjets != 0]
-    real_deltars_hhbtagjets = minimal_deltar_permutation_hhbtagjets[minimal_deltar_permutation_hhbtagjets != 0]
-
-    # mask: only events with at least 2 jets
-    mask_genmatchedjets = ak.num(events.GenmatchedJets, axis=1) == 2
-    mask_hhbtagjets = ak.num(events.GenmatchedHHBtagJets, axis=1) == 2
-
-    # delta r values 
-    delta_rs_genmatchedjets = ak.where(mask_genmatchedjets, ak.flatten(real_deltars_genmatchedjets), EMPTY_FLOAT)
-    delta_rs_hhbtagjets = ak.where(mask_hhbtagjets, ak.flatten(real_deltars_hhbtagjets), EMPTY_FLOAT)
-
-    events = set_ak_column_f32(events, "delta_r_2_matches", delta_rs_genmatchedjets)
-    events = set_ak_column_f32(events, "delta_r_HHbtag", delta_rs_hhbtagjets)
-    # embed() 
-    # events = set_ak_column_f32(events, "delta_r_HHbtag", delta_r_hhbtag[:,np.newaxis])
     return events
 
 @producer(
@@ -154,31 +143,45 @@ def genmatched_delta_r(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     },
     produces={
         # new columns
-        "first_pt_2_matches", "first_pt_btag",
-        # "first_pt_partons", "first_pt_genmatchedgenjets"
+        "first_pt_2_matches", "first_pt_btag", "first_pt_genbpartons",
+        # "first_pt_genmatchedgenjets"
     },
 )
 def get_pt(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     """
-    Creates new columns: 'first_pt_2_matches' for the transverse momentum of the first genmatched jet
+    Creates new columns: 'first_pt_genbpartons' for the transverse momentum of the first Gen parton,
+    'first_pt_2_matches' for the pt of the first genmatched jet
     and 'first_pt_btag' for the transverse momentum of the first HHBtag jet.
     """
-    # check to assert that therlaw run cf.PlotVariables2D --version v1 --variables jet1_pt-n_jet --processes graviton_hh_ggf_bbtautau_m1250 --categories incl --config run2_2017_nano_uhh_v11_limited --skip-legende are really two jets present
-    first_pt_2_matches_padded = ak.pad_none(events.GenmatchedJets.pt, 1, axis=1)
-    first_pt_btag_padded = ak.pad_none(events.GenmatchedHHBtagJets.pt, 1, axis=1)
 
-    padded_nan_first_pt_2_matches = ak.fill_none(first_pt_2_matches_padded, np.nan, axis=1)
-    padded_nan_first_pt_btag = ak.fill_none(first_pt_btag_padded, np.nan, axis=1)
+    def first_pt(array: ak.Array, num_objects: int=2):
+        first_pt_padded = ak.pad_none(array.pt, 1, axis=1)
+        padded_nan_first_pt = ak.fill_none(first_pt_padded, np.nan, axis=1)
+        mask = ak.count(array.pt, axis=1) == num_objects
+        first_pt = ak.where(mask, padded_nan_first_pt[:,0], EMPTY_FLOAT)
+        return first_pt
+
+    # # check to assert that there are really two jets present
+    # first_pt_genbpartons_padded = ak.pad_none(events.GenBPartons.pt, 1, axis=1)
+    # first_pt_2_matches_padded = ak.pad_none(events.GenmatchedJets.pt, 1, axis=1)
+    # first_pt_btag_padded = ak.pad_none(events.GenmatchedHHBtagJets.pt, 1, axis=1)
+
+    # padded_nan_first_pt_genbpartons = ak.fill_none(first_pt_genbpartons_padded, np.nan, axis=1)
+    # padded_nan_first_pt_2_matches = ak.fill_none(first_pt_2_matches_padded, np.nan, axis=1)
+    # padded_nan_first_pt_btag = ak.fill_none(first_pt_btag_padded, np.nan, axis=1)
     
-    mask_1 = ak.count(events.GenmatchedJets.pt, axis=1) == 2
-    mask_2 = ak.count(events.GenmatchedHHBtagJets.pt, axis=1) == 2
+    # mask_0 = ak.count(events.GenBPartons.pt, axis=1) == 2
+    # mask_1 = ak.count(events.GenmatchedJets.pt, axis=1) == 2
+    # mask_2 = ak.count(events.GenmatchedHHBtagJets.pt, axis=1) == 2
 
-    first_pt_2_matches = ak.where(mask_1, padded_nan_first_pt_2_matches[:,0], EMPTY_FLOAT)
-    first_pt_btag = ak.where(mask_2, padded_nan_first_pt_btag[:,0], EMPTY_FLOAT)
+    # first_pt_genbpartons = ak.where(mask_0, padded_nan_first_pt_genbpartons[:,0], EMPTY_FLOAT)
+    # first_pt_2_matches = ak.where(mask_1, padded_nan_first_pt_2_matches[:,0], EMPTY_FLOAT)
+    # first_pt_btag = ak.where(mask_2, padded_nan_first_pt_btag[:,0], EMPTY_FLOAT)
 
     # first_pt_2_matches_padded = pad_events(events.GenmatchedJets[mask_1][:,0].pt, 1)
     # first_pt_btag_padded = pad_events(events.GenmatchedHHBtagJets[mask_2][:,0].pt, 1)
 
-    events = set_ak_column_f32(events, "first_pt_2_matches", first_pt_2_matches)
-    events = set_ak_column_f32(events, "first_pt_btag", first_pt_btag)
+    events = set_ak_column_f32(events, "first_pt_genbpartons", first_pt(events.GenBPartons))
+    events = set_ak_column_f32(events, "first_pt_2_matches", first_pt(events.GenmatchedJets))
+    events = set_ak_column_f32(events, "first_pt_btag", first_pt(events.GenmatchedHHBtagJets))
     return events

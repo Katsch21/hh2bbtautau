@@ -658,18 +658,21 @@ def add_config(
             "Tau.decayMode",
             "MET.pt", "MET.phi", "MET.significance", "MET.covXX", "MET.covXY", "MET.covYY",
             "nGenPart", "GenPart.*", "nGenJet", 'GenJet.*','GenVisTau.*','nGenVisTau',
+            "GenBPartons.*",
             "PV.npvs",
             ####################
             ### my own variables
             # btags
-            "Jet.btagDeepFlavB", "Jet.btagDeepFlavCvB",
+            # "Jet.btagDeepFlavB", 
+            "Jet.btagDeepFlavCvB",
             # fatjets
             "FatJet.btagHbb", "FatJet.deepTag.H", "FatJet.deepTagMD.H4qvsQCD", "FatJet.deepTagMD.HbbvsQCD",
             "FatJet.particleNetMD.Xbb", "FatJet.particleNet.H4qvsQCD", "FatJet.particleNet.HbbvsQCD",
             # deeptau
             "Tau.rawDeepTau2017v2p1VSe", "Tau.rawDeepTau2017v2p1VSjet", "Tau.rawDeepTau2017v2p1VSmu",
             # delta r plots
-            "delta_r_2_matches", "delta_r_btag", "first_pt_2_matches", "first_pt_btag", "delta_r_HHbtag",
+            "delta_r_2_matches", "delta_r_btag", "delta_r_HHbtag", "delta_r_genbpartons",
+            "first_pt_2_matches", "first_pt_btag", "first_pt_genbpartons",
             # columns added during selection
             "channel_id", "process_id", "category_ids", "mc_weight", "pdf_weight*", "murmuf_weight*",
             "leptons_os", "tau2_isolated", "single_triggered", "cross_triggered",
