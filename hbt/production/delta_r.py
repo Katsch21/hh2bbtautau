@@ -25,7 +25,7 @@ set_ak_column_i32 = functools.partial(set_ak_column, value_type=np.int32)
 # TODO: check if delta_r is still used / if set_ak_columns are still saved
 @producer(
     uses={
-       "GenmatchedJets.*", "GenmatchedHHBtagJets.*", genmatching_selector, "nGenJet", "Jet.*", 
+       "GenmatchedJets.*", "GenmatchedHHBtagJets.*", "GenJet.*", genmatching_selector, "nGenJet", "Jet.*", 
         attach_coffea_behavior
     },
     produces={
@@ -103,12 +103,12 @@ def delta_r(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
 
 @producer(
     uses={
-       "GenmatchedJets.*", "GenmatchedHHBtagJets.*", "GenBPartons.*", genmatching_selector, "nGenJet", "Jet.*",
+       "GenmatchedJets.*", "GenmatchedHHBtagJets.*", "GenBPartons.*", "GenmatchedGenJets.*", genmatching_selector, "nGenJet", "Jet.*",
         attach_coffea_behavior
     },
     produces={
         # new columns
-        "delta_r_2_matches", "delta_r_HHbtag", "delta_r_genbpartons",
+        "delta_r_2_matches", "delta_r_HHbtag", "delta_r_genbpartons", "delta_r_genmatchedgenjets"
     },
 )
 def genmatched_delta_r(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
@@ -118,7 +118,8 @@ def genmatched_delta_r(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     """
     # TODO: Also implement delta r values for partons and for matched genjets.
     collections = {x: {"type_name" : "Jet"} for x in ["GenmatchedJets", "GenmatchedHHBtagJets"]}
-    collections.update({y: {"type_name" : "GenParticle", "skip_fields": "*Idx*G",} for y in ["GenBPartons"]}) # syntax correct?
+    collections.update({y: {"type_name" : "GenParticle", "skip_fields": "*Idx*G",} for y in ["GenBPartons"]})
+    collections.update({y: {"type_name" : "GenJet", "skip_fields": "*Idx*G",} for y in ["GenmatchedGenJets"]})
 
     
     events = self[attach_coffea_behavior](events, collections=collections, **kwargs)
@@ -132,6 +133,7 @@ def genmatched_delta_r(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         return ak.where(mask, ak.flatten(real_deltars), EMPTY_FLOAT)
 
     events = set_ak_column_f32(events, "delta_r_genbpartons", calculate_delta_r(events.GenBPartons))
+    events = set_ak_column_f32(events, "delta_r_genmatchedgenjets", calculate_delta_r(events.GenmatchedGenJets))
     events = set_ak_column_f32(events, "delta_r_2_matches", calculate_delta_r(events.GenmatchedJets))
     events = set_ak_column_f32(events, "delta_r_HHbtag", calculate_delta_r(events.GenmatchedHHBtagJets))
 
@@ -143,8 +145,7 @@ def genmatched_delta_r(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     },
     produces={
         # new columns
-        "first_pt_2_matches", "first_pt_btag", "first_pt_genbpartons",
-        # "first_pt_genmatchedgenjets"
+        "first_pt_2_matches", "first_pt_btag", "first_pt_genbpartons", "first_pt_genmatchedgenjets"
     },
 )
 def get_pt(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
@@ -182,6 +183,7 @@ def get_pt(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     # first_pt_btag_padded = pad_events(events.GenmatchedHHBtagJets[mask_2][:,0].pt, 1)
 
     events = set_ak_column_f32(events, "first_pt_genbpartons", first_pt(events.GenBPartons))
+    events = set_ak_column_f32(events, "first_pt_genmatchedgenjets", first_pt(events.GenmatchedGenJets))
     events = set_ak_column_f32(events, "first_pt_2_matches", first_pt(events.GenmatchedJets))
     events = set_ak_column_f32(events, "first_pt_btag", first_pt(events.GenmatchedHHBtagJets))
     return events

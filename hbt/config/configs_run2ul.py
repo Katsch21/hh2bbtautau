@@ -671,13 +671,14 @@ def add_config(
             # deeptau
             "Tau.rawDeepTau2017v2p1VSe", "Tau.rawDeepTau2017v2p1VSjet", "Tau.rawDeepTau2017v2p1VSmu",
             # delta r plots
-            "delta_r_2_matches", "delta_r_btag", "delta_r_HHbtag", "delta_r_genbpartons",
-            "first_pt_2_matches", "first_pt_btag", "first_pt_genbpartons",
+            "delta_r_2_matches", "delta_r_btag", "delta_r_HHbtag", "delta_r_genbpartons", "delta_r_genmatchedgenjets",
+            "first_pt_2_matches", "first_pt_btag", "first_pt_genbpartons", "first_pt_genmatchedgenjets",
             # columns added during selection
             "channel_id", "process_id", "category_ids", "mc_weight", "pdf_weight*", "murmuf_weight*",
             "leptons_os", "tau2_isolated", "single_triggered", "cross_triggered",
             "genBpartonH.pt", "genBpartonH.eta", "genBpartonH.phi", "genBpartonH.mass", 
             "genTaupartonH.pt", "genTaupartonH.eta", "genTaupartonH.phi", "genTaupartonH.mass",
+            "GenmatchedGenJets.*",
             "GenmatchedJets.pt", "GenmatchedJets.eta", "GenmatchedJets.phi", "GenmatchedJets.mass", 
             "GenmatchedHHBtagJets.pt", "GenmatchedHHBtagJets.eta", "GenmatchedHHBtagJets.phi", "GenmatchedHHBtagJets.mass", 
             "deterministic_seed", "pu_weight*", "btag_weight*", "cutflow.*",
