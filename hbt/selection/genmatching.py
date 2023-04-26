@@ -39,19 +39,20 @@ def genmatching_selector(
     # get GenJets with b as partonFlavour
     genBjets = events.GenJet[abs(events.GenJet.partonFlavour) == 5]
 
+    # Matching step 1 begins here!
     # calculate deltaR between genBjets and gen b partons from H
     nearest_genjet_to_parton = events.genBpartonH.nearest(genBjets, threshold=0.4)
 
     # filter unmatched cases
     unmatched_genjets = ak.is_none(nearest_genjet_to_parton.pt, axis=1)
-
     matched_genjets_to_parton = nearest_genjet_to_parton[~unmatched_genjets]
 
+    # Matching step 2 begins here!
     # calculated deltaR between matched Gen Jets and Jets
     nearest_jets_to_genjets = matched_genjets_to_parton.nearest(jet_collection, threshold=0.4)
     
+    # calculation of the indices of the matched jets
     metrics_jets_to_genjets = matched_genjets_to_parton.metric_table(jet_collection, axis=1)
-    
     mmin = ak.argmin(metrics_jets_to_genjets, axis=2, keepdims=True)
     metric = ak.firsts(metrics_jets_to_genjets[mmin], axis=2)
     
@@ -60,13 +61,14 @@ def genmatching_selector(
      # filter unmatched cases
     unmatched_jets = ak.is_none(nearest_jets_to_genjets.pt, axis=1)
 
+    # genmatched jets (not the indices, but the objects):
     matched_jets_to_genjets = nearest_jets_to_genjets[~unmatched_jets]
+
+    # prepare HHBtagged Jet indices for the comparison with genmatchedJets:
     selected_hhbjet_indices=ak.pad_none(jet_results.objects.Jet.HHBJet,2,axis=1)
     padded_mmin=ak.pad_none(mmin,2,axis=1)
-   
-    embed()
 
-    # implement comparison selection and matching in array matched_and_selected
+    # Comparison: HHBtagged Jets and Genmatched Jets: selection and matching begins here!
     # each genjet has (at least) one btag jet
     matched_and_selected = ak.from_iter([np.isin(selected_hhbjet_indices[index], padded_mmin[index]) for index in range(len(padded_mmin))])
 
@@ -83,6 +85,33 @@ def genmatching_selector(
         (ak.sum(matched_and_selected, axis=1) == 2)
     )
 
+    # get indices for plotting genmatching steps:
+    
+    def find_genjet_indices(array1: ak.Array, array2: ak.Array):
+        """
+        calculates indices of jets of a specific genmatching step, 
+        where array1 is matched to array2.
+        """
+        # find nearest jet2 to jet1:
+        # nearest_genjet = array1.nearest(array2, treshold=0.4)
+        # filter unmatched cases
+        # unmatched_genjets =  ak.is_none(nearest_genjet.pt, axis=1)
+        # matched_genjets = nearest_genjet[~unmatched_genjets]
+        # calculate delta R between jets:
+        metrics_genjets = array1.metric_table(array2, axis=1)
+        # get indices of minimum delta R value:
+        minimum_deltar_indices = ak.argmin(metrics_genjets, axis=2, keepdims=True)
+        # filter only indices of minimum delta R value:
+        metric = ak.firsts(metrics_genjets[minimum_deltar_indices], axis=2)
+        # get indices:
+        genjet_indices = ak.firsts(minimum_deltar_indices.mask[metric <= 0.4], axis=2)
+
+        return genjet_indices
+    
+    # TODO: are genmatchedjets_indices and mmin the same?? Does the function work correctly?
+    genmatchedgenjets_indices = find_genjet_indices(array1 = events.genBpartonH, array2 = genBjets)
+    genmatchedjets_indices = find_genjet_indices(array1 = matched_genjets_to_parton, array2 = jet_collection)
+
     def find_partons_id(events: ak.Array, pdgId: int, mother_pdgId: int=25):
         abs_id = abs(events.GenPart.pdgId)
         part_id=ak.local_index(events.GenPart, axis=1)
@@ -95,12 +124,13 @@ def genmatching_selector(
 
     part_id = find_partons_id(events, pdgId=5, mother_pdgId=25)
 
-    # new variables for plotting:
+    # embed()
     
     # events = set_ak_column(events, "GenmatchedJets", events.Jet[mmin])
     # events = set_ak_column(events, "GenmatchedHHBtagJets", events.Jet[selected_hhbjet_indices][matched_and_selected])
 
     print("genmatching_done")
+
     return events, SelectionResult(
     steps={
         # Gen Matching Steps
@@ -110,14 +140,14 @@ def genmatching_selector(
         },
     objects={
         "GenPart":{
-            "GenBPartons": part_id,
+            "GenBPartons": part_id, # Gen Partons (before matching)
         },
-        # "GenJet":{
-            #" GenmatchedGenJets":
-        # }
+        "GenJet":{
+            "GenmatchedGenJets": genmatchedgenjets_indices # Gen Jets (Matching step 1)
+        },
         "Jet":{ 
-            "GenmatchedJets": mmin, # detector jets
+            "GenmatchedJets": mmin, # detector jets (Matching Step 2)
             "GenmatchedHHBtagJets": matched_and_selected,
-            }
+        }
         }
     )
