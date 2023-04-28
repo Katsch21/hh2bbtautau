@@ -143,7 +143,7 @@ def add_variables(config: od.Config) -> None:
         name="first_pt_genmatchedgenjets",
         expression="first_pt_genmatchedgenjets",
         null_value=EMPTY_FLOAT,
-        binning=(100, 0.0, 400.0),
+        binning=(100, 0.0, 1000.0),
         x_title=r"pt of first genmatched Gen Jet"
     )
     config.add_variable(
@@ -297,7 +297,7 @@ def add_variables(config: od.Config) -> None:
     config.add_variable(
         name="cf_njet",
         expression="cutflow.n_jet",
-        binning=(17, -0.5, 16.5),
+        binning=(11, -0.5, 10.5),
         x_title="Jet multiplicity",
         discrete_x=True,
     )
