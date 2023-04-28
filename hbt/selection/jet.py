@@ -81,7 +81,7 @@ def jet_selection(
     # least two jets pass the default mask (bjet candidates)
     valid_score_mask = (
         default_mask &
-        (ak.sum(default_mask, axis=1) >= 2) &##  #in original paper : 2 # TODO
+        (ak.sum(default_mask, axis=1) >= 0) &##  #in original paper : 2 # TODO
         (ak.num(lepton_results.x.lepton_pair, axis=1) == 2)
     )
     hhbjet_indices = score_indices[valid_score_mask[score_indices]][..., :2]
@@ -149,7 +149,7 @@ def jet_selection(
     #embed()
     subjets_match = (
         ak.all(ak.sum(metrics < 0.4, axis=3) == 1, axis=2) &
-        (ak.num(hhbjet_indices, axis=1) >= 2)## #in original paper : 2 # TODO
+        (ak.num(hhbjet_indices, axis=1) >= 0)## #in original paper : 2 # TODO
     )
     fatjet_mask = vanilla_fatjet_mask & subjets_match
 
@@ -178,7 +178,7 @@ def jet_selection(
 
     # final event selection
     jet_sel = (
-        (ak.sum(default_mask, axis=1) >= 2) & ## #in original paper : 2 # TODO
+        (ak.sum(default_mask, axis=1) >= 0) & ## #in original paper : 2 # TODO
         ak.fill_none(subjets_btagged, True)  # was none for events with no matched fatjet
     )
 
