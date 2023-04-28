@@ -2,6 +2,8 @@
 
 """
 Jet selection methods.
+Every selection with TODO is changed to 0
+so that the number of jets that pass the filter does not change.
 """
 
 from operator import or_
