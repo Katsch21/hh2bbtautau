@@ -89,14 +89,9 @@ def genmatching_selector(
     
     def find_genjet_indices(array1: ak.Array, array2: ak.Array):
         """
-        calculates indices of jets of a specific genmatching step, 
-        where array1 is matched to array2.
+        calculates indices of jets of a specific genmatching step
+        in which array1 is matched to array2.
         """
-        # find nearest jet2 to jet1:
-        # nearest_genjet = array1.nearest(array2, treshold=0.4)
-        # filter unmatched cases
-        # unmatched_genjets =  ak.is_none(nearest_genjet.pt, axis=1)
-        # matched_genjets = nearest_genjet[~unmatched_genjets]
         # calculate delta R between jets:
         metrics_genjets = array1.metric_table(array2, axis=1)
         # get indices of minimum delta R value:
