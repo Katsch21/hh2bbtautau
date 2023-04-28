@@ -62,9 +62,10 @@ def add_config(
         "qcd",
         "h",
         "hh_ggf_bbtautau",
-        "graviton_hh_ggf_bbtautau_m400",
-        "graviton_hh_ggf_bbtautau_m1250",
     ]
+    process_names += [f"graviton_hh_ggf_bbtautau_m{m}"
+                      for m in [400, 800, 1000, 1250, 1500, 1750, 2000, 2500, 3000]
+                      ]
     for process_name in process_names:
         # development switch in case datasets are not _yet_ there
         if process_name not in procs:
@@ -139,9 +140,11 @@ def add_config(
         "tth_nonbb_powheg",
         # signals
         "hh_ggf_bbtautau_madgraph",
-        "graviton_hh_ggf_bbtautau_m400_madgraph",
-        "graviton_hh_ggf_bbtautau_m1250_madgraph",
+        
     ]
+    dataset_names += [f"graviton_hh_ggf_bbtautau_m{m}_madgraph"
+                      for m in [400, 1250, 1750, 2000, 2500, 3000]
+                      ]
     for dataset_name in dataset_names:
         # development switch in case datasets are not _yet_ there
         if dataset_name not in campaign.datasets:
@@ -644,7 +647,7 @@ def add_config(
             "run", "luminosityBlock", "event",
             # object info
             "Jet.pt", "Jet.eta", "Jet.phi", "Jet.mass", "Jet.btagDeepFlavB", "Jet.hadronFlavour",
-            "Jet.hhbtag",
+            "Jet.hhbtag", "nJet",
             "FatJet.pt", # we added this one
             "HHBJet.pt", "HHBJet.eta", "HHBJet.phi", "HHBJet.mass", "HHBJet.btagDeepFlavB",
             "HHBJet.hadronFlavour", "HHBJet.hhbtag",
