@@ -82,6 +82,13 @@ def cutflow_features(
     # apply per-object selections
     selected_jet = events.Jet[object_masks["Jet"]["Jet"]]
 
+    # add EMPTY_FLOAT default value for columns with empty collections
+    def pad_events(events: ak.Array, variable: str, number_required_objects: int):
+        column = Route(variable).apply(events)
+        column_padded = ak.pad_none(column, number_required_objects, axis=1)
+        column_padded = ak.fill_none(column_padded, EMPTY_FLOAT, axis=1)
+        return column_padded
+
     # add feature columns
     events = set_ak_column_i32(events, "cutflow.n_jet", ak.num(events.Jet, axis=1))
     events = set_ak_column_i32(events, "cutflow.n_jet_selected", ak.num(selected_jet, axis=1))
@@ -91,17 +98,16 @@ def cutflow_features(
     events = set_ak_column_f32(events, "cutflow.jet1_phi", Route("phi[:,0]").apply(selected_jet, EMPTY_FLOAT))
     events = set_ak_column_f32(events, "cutflow.jet2_pt", Route("pt[:,1]").apply(selected_jet, EMPTY_FLOAT))
     # btags
-    events = set_ak_column_f32(events, "cutflow.btagDeepFlavB1", ak.sort(events.Jet.btagDeepFlavB, axis=1, ascending=False)[:,0])
-    events = set_ak_column_f32(events, "cutflow.btagDeepFlavCvB1", ak.sort(events.Jet.btagDeepFlavCvB, axis=1, ascending=True)[:,0])
-    events = set_ak_column_f32(events, "cutflow.btagDeepFlavB2", ak.sort(events.Jet.btagDeepFlavB, axis=1, ascending=False)[:,1])
-    events = set_ak_column_f32(events, "cutflow.btagDeepFlavCvB2", ak.sort(events.Jet.btagDeepFlavCvB, axis=1, ascending=True)[:,1])
+    btagDeepFlavB_padded = pad_events(events, "Jet.btagDeepFlavB", 2)
+    btagDeepFlavCvB_padded = pad_events(events, "Jet.btagDeepFlavCvB", 2)
+
+    events = set_ak_column_f32(events, "cutflow.btagDeepFlavB1", ak.sort(btagDeepFlavB_padded, axis=1, ascending=False)[:,0])
+    events = set_ak_column_f32(events, "cutflow.btagDeepFlavCvB1", ak.sort(btagDeepFlavCvB_padded, axis=1, ascending=True)[:,0])
     
-    # add EMPTY_FLOAT default value for columns with empty collections
-    def pad_events(events: ak.Array, variable: str, number_required_objects: int):
-            column = Route(variable).apply(events)
-            column_padded = ak.pad_none(column, number_required_objects, axis=1)
-            column_padded = ak.fill_none(column_padded, EMPTY_FLOAT, axis=1)
-            return column_padded
+    events = set_ak_column_f32(events, "cutflow.btagDeepFlavB2", ak.sort(btagDeepFlavB_padded, axis=1, ascending=False)[:,1])
+    events = set_ak_column_f32(events, "cutflow.btagDeepFlavCvB2", ak.sort(btagDeepFlavCvB_padded, axis=1, ascending=True)[:,1])
+    
+    
 
     # padded columns
     rawDeepTau2017v2p1VSe_padded = pad_events(events, "Tau.rawDeepTau2017v2p1VSe", 2)

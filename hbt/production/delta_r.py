@@ -119,7 +119,7 @@ def genmatched_delta_r(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     # TODO: Also implement delta r values for partons and for matched genjets.
     collections = {x: {"type_name" : "Jet"} for x in ["GenmatchedJets", "GenmatchedHHBtagJets"]}
     collections.update({y: {"type_name" : "GenParticle", "skip_fields": "*Idx*G",} for y in ["GenBPartons"]})
-    collections.update({y: {"type_name" : "GenJet", "skip_fields": "*Idx*G",} for y in ["GenmatchedGenJets"]})
+    collections.update({y: {"type_name" : "Jet", "skip_fields": "*Idx*G",} for y in ["GenmatchedGenJets"]})
 
     
     events = self[attach_coffea_behavior](events, collections=collections, **kwargs)
@@ -128,8 +128,11 @@ def genmatched_delta_r(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     def calculate_delta_r(array: ak.Array, num_objects: int=2):
         all_deltars = array.metric_table(array)
         min_deltars_permutations = ak.firsts(all_deltars)
-        real_deltars = min_deltars_permutations[min_deltars_permutations != 0]
+        real_deltar_mask = min_deltars_permutations != 0
+        # real_deltars = ak.mask(min_deltars_permutations, real_deltar_mask)
+        real_deltars = min_deltars_permutations[real_deltar_mask]
         mask = ak.num(array, axis=1) == num_objects
+        from IPython import embed; embed()
         return ak.where(mask, ak.flatten(real_deltars), EMPTY_FLOAT)
 
     events = set_ak_column_f32(events, "delta_r_genbpartons", calculate_delta_r(events.GenBPartons))
