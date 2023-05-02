@@ -132,7 +132,7 @@ def genmatched_delta_r(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         # real_deltars = ak.mask(min_deltars_permutations, real_deltar_mask)
         real_deltars = min_deltars_permutations[real_deltar_mask]
         mask = ak.num(array, axis=1) == num_objects
-        from IPython import embed; embed()
+        # from IPython import embed; embed()
         return ak.where(mask, ak.flatten(real_deltars), EMPTY_FLOAT)
 
     events = set_ak_column_f32(events, "delta_r_genbpartons", calculate_delta_r(events.GenBPartons))
