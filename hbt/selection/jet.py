@@ -148,7 +148,6 @@ def jet_selection(
 
     # unique subjet matching
     metrics = events.FatJet.subjets.metric_table(events.Jet[hhbjet_indices])
-    #embed()
     subjets_match = (
         ak.all(ak.sum(metrics < 0.4, axis=3) == 1, axis=2) &
         (ak.num(hhbjet_indices, axis=1) >= 0)## #in original paper : 2 # TODO
