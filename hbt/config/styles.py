@@ -18,28 +18,28 @@ def stylize_processes(config: od.Config) -> None:
     # as I do not plot any background, I can just use the whole colour range
 
     if config.has_process("graviton_hh_ggf_bbtautau_m400"):
-            config.processes.n.graviton_hh_ggf_bbtautau_m400.color1 = (255, 0, 0)
+            config.processes.n.graviton_hh_ggf_bbtautau_m400.color1 = (0,0,0)
 
     if config.has_process("graviton_hh_ggf_bbtautau_m800"):
-            config.processes.n.graviton_hh_ggf_bbtautau_m800.color1 = (255, 0, 136)
+            config.processes.n.graviton_hh_ggf_bbtautau_m800.color1 = (230,159,0)
 
     if config.has_process("graviton_hh_ggf_bbtautau_m1000"):
-            config.processes.n.graviton_hh_ggf_bbtautau_m1000.color1 = (166, 0, 255)
+            config.processes.n.graviton_hh_ggf_bbtautau_m1000.color1 = (86,180,233)
 
     if config.has_process("graviton_hh_ggf_bbtautau_m1250"):
-            config.processes.n.graviton_hh_ggf_bbtautau_m1250.color1 = (0, 60, 255)
+            config.processes.n.graviton_hh_ggf_bbtautau_m1250.color1 = (0,158,115)
 
     if config.has_process("graviton_hh_ggf_bbtautau_m1750"):
-            config.processes.n.graviton_hh_ggf_bbtautau_m1750.color1 = (0, 200, 255)
+            config.processes.n.graviton_hh_ggf_bbtautau_m1750.color1 = (240,228,66)
 
     if config.has_process("graviton_hh_ggf_bbtautau_m2000"):
-            config.processes.n.graviton_hh_ggf_bbtautau_m2000.color1 = (75, 55, 189)
+            config.processes.n.graviton_hh_ggf_bbtautau_m2000.color1 = (0,114,178)
 
     if config.has_process("graviton_hh_ggf_bbtautau_m2500"):
-            config.processes.n.graviton_hh_ggf_bbtautau_m2500.color1 = (0, 255, 128)
+            config.processes.n.graviton_hh_ggf_bbtautau_m2500.color1 = (213,94,0)
 
     if config.has_process("graviton_hh_ggf_bbtautau_m3000"):
-            config.processes.n.graviton_hh_ggf_bbtautau_m3000.color1 = (255, 145, 0)
+            config.processes.n.graviton_hh_ggf_bbtautau_m3000.color1 = (204,121,167)
 
 
     if config.has_process("h"):
