@@ -676,6 +676,7 @@ def add_config(
             # delta r plots
             "delta_r_2_matches", "delta_r_btag", "delta_r_HHbtag", "delta_r_genbpartons", "delta_r_genmatchedgenjets",
             "first_pt_2_matches", "first_pt_btag", "first_pt_genbpartons", "first_pt_genmatchedgenjets",
+            "sum_pt_2_matches", "sum_pt_btag", "sum_pt_genbpartons", "sum_pt_genmatchedgenjets",
             # columns added during selection
             "channel_id", "process_id", "category_ids", "mc_weight", "pdf_weight*", "murmuf_weight*",
             "leptons_os", "tau2_isolated", "single_triggered", "cross_triggered",

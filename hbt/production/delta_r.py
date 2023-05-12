@@ -116,7 +116,7 @@ def genmatched_delta_r(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     Creates new columns: 'delta_r_2_matches' for the delta r values of the first two genmatched jets
     and 'delta_r_HHbtag' for the delta r values of the first two HHBtag jets.
     """
-    # TODO: Also implement delta r values for partons and for matched genjets.
+
     collections = {x: {"type_name" : "Jet"} for x in ["GenmatchedJets", "GenmatchedHHBtagJets"]}
     collections.update({y: {"type_name" : "GenParticle", "skip_fields": "*Idx*G",} for y in ["GenBPartons"]})
     collections.update({y: {"type_name" : "Jet", "skip_fields": "*Idx*G",} for y in ["GenmatchedGenJets"]})
@@ -124,8 +124,8 @@ def genmatched_delta_r(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     
     events = self[attach_coffea_behavior](events, collections=collections, **kwargs)
 
-    # calculate all possible delta R values (all permutations):
     def calculate_delta_r(array: ak.Array, num_objects: int=2):
+        # calculate all possible delta R values (all permutations):
         all_deltars = array.metric_table(array)
         min_deltars_permutations = ak.firsts(all_deltars)
         real_deltar_mask = min_deltars_permutations != 0
@@ -148,7 +148,8 @@ def genmatched_delta_r(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     },
     produces={
         # new columns
-        "first_pt_2_matches", "first_pt_btag", "first_pt_genbpartons", "first_pt_genmatchedgenjets"
+        "first_pt_2_matches", "first_pt_btag", "first_pt_genbpartons", "first_pt_genmatchedgenjets",
+        "sum_pt_2_matches", "sum_pt_btag", "sum_pt_genbpartons", "sum_pt_genmatchedgenjets"
     },
 )
 def get_pt(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
@@ -164,6 +165,13 @@ def get_pt(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         mask = ak.count(array.pt, axis=1) == num_objects
         first_pt = ak.where(mask, padded_nan_first_pt[:,0], EMPTY_FLOAT)
         return first_pt
+    
+    def second_pt(array: ak.Array, num_objects: int=2):
+        second_pt_padded = ak.pad_none(array.pt, 1, axis=1)
+        padded_nan_second_pt = ak.fill_none(second_pt_padded, np.nan, axis=1)
+        mask = ak.count(array.pt, axis=1) == num_objects
+        second_pt = ak.where(mask, padded_nan_second_pt[:,1], EMPTY_FLOAT)
+        return second_pt
 
     # # check to assert that there are really two jets present
     # first_pt_genbpartons_padded = ak.pad_none(events.GenBPartons.pt, 1, axis=1)
@@ -185,8 +193,22 @@ def get_pt(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     # first_pt_2_matches_padded = pad_events(events.GenmatchedJets[mask_1][:,0].pt, 1)
     # first_pt_btag_padded = pad_events(events.GenmatchedHHBtagJets[mask_2][:,0].pt, 1)
 
+    # produce pt sums
+    sum_pt_genbpartons = first_pt(events.GenBPartons) + second_pt(events.GenBPartons)
+    sum_pt_genmatchedgenjets = first_pt(events.GenmatchedGenJets) + second_pt(events.GenmatchedGenJets)
+    sum_pt_2_matches = first_pt(events.GenmatchedJets) + second_pt(events.GenmatchedJets)
+    sum_pt_btag = first_pt(events.GenmatchedHHBtagJets) + second_pt(events.GenmatchedHHBtagJets)
+
+    # variables for 1st (btag ordered) pt
     events = set_ak_column_f32(events, "first_pt_genbpartons", first_pt(events.GenBPartons))
     events = set_ak_column_f32(events, "first_pt_genmatchedgenjets", first_pt(events.GenmatchedGenJets))
     events = set_ak_column_f32(events, "first_pt_2_matches", first_pt(events.GenmatchedJets))
     events = set_ak_column_f32(events, "first_pt_btag", first_pt(events.GenmatchedHHBtagJets))
+
+    # variables for sum of 1st+2nd (btag ordered) pt
+    events = set_ak_column_f32(events, "sum_pt_genbpartons", sum_pt_genbpartons)
+    events = set_ak_column_f32(events, "sum_pt_genmatchedgenjets", sum_pt_genmatchedgenjets)
+    events = set_ak_column_f32(events, "sum_pt_2_matches", sum_pt_2_matches)
+    events = set_ak_column_f32(events, "sum_pt_btag", sum_pt_btag)
+
     return events
