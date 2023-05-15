@@ -71,6 +71,7 @@ def genmatching_selector(
     # Comparison: HHBtagged Jets and Genmatched Jets: selection and matching begins here!
     # each genjet has (at least) one btag jet
     matched_and_selected = ak.from_iter([np.isin(selected_hhbjet_indices[index], padded_mmin[index]) for index in range(len(padded_mmin))])
+    # TODO embed --> reihenfolge matched_and_selected
 
     # event selection:
     at_least_one_jet_matched_event_selection=(
@@ -115,6 +116,7 @@ def genmatching_selector(
         part_id = part_id[part.hasFlags("isHardProcess")& (abs(part.distinctParent.pdgId) == mother_pdgId)]
         part = part[part.hasFlags("isHardProcess")& (abs(part.distinctParent.pdgId) == mother_pdgId)]
         part_id = part_id[~ak.is_none(part, axis=1)]
+        # TODO embed() --> reihenfolge partons
         return part_id
 
     part_id = find_partons_id(events, pdgId=5, mother_pdgId=25)
