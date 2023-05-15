@@ -131,10 +131,14 @@ def genmatched_delta_r(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         real_deltar_mask = min_deltars_permutations != 0
         # real_deltars = ak.mask(min_deltars_permutations, real_deltar_mask)
         real_deltars = min_deltars_permutations[real_deltar_mask]
+        real_deltars_padded = ak.pad_none(real_deltars, 1, axis=1)
+        real_deltars_filled = ak.fill_none(real_deltars_padded, 0, axis=1)
+        # still Nones in axis 0
+        # new_mask = ak.is_none(real_deltars_filled)
+        real_deltars_filled_axiszero = ak.fill_none(real_deltars_filled, [0], axis=0)
         mask = ak.num(array, axis=1) == num_objects
-        # from IPython import embed; embed()
-        return ak.where(mask, ak.flatten(real_deltars), EMPTY_FLOAT)
-
+        return ak.where(mask, ak.flatten(real_deltars_filled_axiszero), EMPTY_FLOAT)
+    # embed()
     events = set_ak_column_f32(events, "delta_r_genbpartons", calculate_delta_r(events.GenBPartons))
     events = set_ak_column_f32(events, "delta_r_genmatchedgenjets", calculate_delta_r(events.GenmatchedGenJets))
     events = set_ak_column_f32(events, "delta_r_2_matches", calculate_delta_r(events.GenmatchedJets))
@@ -154,7 +158,7 @@ def genmatched_delta_r(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
 )
 def get_pt(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     """
-    Creates new columns: 'first_pt_genbpartons' for the transverse momentum of the first Gen parton,
+    Creates new columns: 'first_pt_genbpartons' for the transverse momentum of the first Gen Parton,
     'first_pt_2_matches' for the pt of the first genmatched jet
     and 'first_pt_btag' for the transverse momentum of the first HHBtag jet.
     """
@@ -170,34 +174,18 @@ def get_pt(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         second_pt_padded = ak.pad_none(array.pt, 1, axis=1)
         padded_nan_second_pt = ak.fill_none(second_pt_padded, np.nan, axis=1)
         mask = ak.count(array.pt, axis=1) == num_objects
-        second_pt = ak.where(mask, padded_nan_second_pt[:,1], EMPTY_FLOAT)
+        # embed()
+        # pad the events with only one entry:
+        ultimate_padded_second_pt = ak.pad_none(padded_nan_second_pt, 2, axis=1)
+        second_pt = ak.where(mask, ultimate_padded_second_pt[:,1], EMPTY_FLOAT) ##
         return second_pt
-
-    # # check to assert that there are really two jets present
-    # first_pt_genbpartons_padded = ak.pad_none(events.GenBPartons.pt, 1, axis=1)
-    # first_pt_2_matches_padded = ak.pad_none(events.GenmatchedJets.pt, 1, axis=1)
-    # first_pt_btag_padded = ak.pad_none(events.GenmatchedHHBtagJets.pt, 1, axis=1)
-
-    # padded_nan_first_pt_genbpartons = ak.fill_none(first_pt_genbpartons_padded, np.nan, axis=1)
-    # padded_nan_first_pt_2_matches = ak.fill_none(first_pt_2_matches_padded, np.nan, axis=1)
-    # padded_nan_first_pt_btag = ak.fill_none(first_pt_btag_padded, np.nan, axis=1)
-    
-    # mask_0 = ak.count(events.GenBPartons.pt, axis=1) == 2
-    # mask_1 = ak.count(events.GenmatchedJets.pt, axis=1) == 2
-    # mask_2 = ak.count(events.GenmatchedHHBtagJets.pt, axis=1) == 2
-
-    # first_pt_genbpartons = ak.where(mask_0, padded_nan_first_pt_genbpartons[:,0], EMPTY_FLOAT)
-    # first_pt_2_matches = ak.where(mask_1, padded_nan_first_pt_2_matches[:,0], EMPTY_FLOAT)
-    # first_pt_btag = ak.where(mask_2, padded_nan_first_pt_btag[:,0], EMPTY_FLOAT)
-
-    # first_pt_2_matches_padded = pad_events(events.GenmatchedJets[mask_1][:,0].pt, 1)
-    # first_pt_btag_padded = pad_events(events.GenmatchedHHBtagJets[mask_2][:,0].pt, 1)
 
     # produce pt sums
     sum_pt_genbpartons = first_pt(events.GenBPartons) + second_pt(events.GenBPartons)
     sum_pt_genmatchedgenjets = first_pt(events.GenmatchedGenJets) + second_pt(events.GenmatchedGenJets)
-    sum_pt_2_matches = first_pt(events.GenmatchedJets) + second_pt(events.GenmatchedJets)
+    sum_pt_2_matches = first_pt(events.GenmatchedJets) + second_pt(events.GenmatchedJets) ##
     sum_pt_btag = first_pt(events.GenmatchedHHBtagJets) + second_pt(events.GenmatchedHHBtagJets)
+
 
     # variables for 1st (btag ordered) pt
     events = set_ak_column_f32(events, "first_pt_genbpartons", first_pt(events.GenBPartons))
