@@ -9,7 +9,7 @@ from columnflow.columnar_util import set_ak_column
 from collections import defaultdict, OrderedDict
 from IPython import embed
 
-from hbt.production.gen_HH_decay import gen_HH_decay_products
+from hbt.production.gen_HH_decay import gen_HH_decay_products, create_genbjets
 
 
 np = maybe_import("numpy")
@@ -20,7 +20,7 @@ ak = maybe_import("awkward")
         "Jet.pt", "Jet.eta", "Jet.phi", "Jet.jetId", "Jet.puId",
         "nGenJet", "GenJet.*",
         "nGenVisTau", "GenVisTau.*", "Jet.genJetIdx", "Tau.genPartIdx",
-        gen_HH_decay_products.PRODUCES,
+        gen_HH_decay_products.PRODUCES, create_genbjets.PRODUCES,
     },
     produces={
         "GenmatchedJets", "GenmatchedHHBtagJets", "GenBPartons",
@@ -37,32 +37,33 @@ def genmatching_selector(
     
     # match genJets to genPartons from H
     # get GenJets with b as partonFlavour
-    genBjets = events.GenJet[abs(events.GenJet.partonFlavour) == 5]
+    # genBjets = events.GenJet[abs(events.GenJet.partonFlavour) == 5] # now a column
+    # check how partons are sorted:
+    # embed()
 
     # Matching step 1 begins here!
     # calculate deltaR between genBjets and gen b partons from H
-    nearest_genjet_to_parton = events.genBpartonH.nearest(genBjets, threshold=0.4)
+    nearest_genjet_to_parton = events.genBpartonH.nearest(events.genBjets, threshold=0.4)
 
-    # filter unmatched cases
-    unmatched_genjets = ak.is_none(nearest_genjet_to_parton.pt, axis=1)
-    matched_genjets_to_parton = nearest_genjet_to_parton[~unmatched_genjets]
+    # filter unmatched cases !!DO NOT FILTER THEM, it destroys indices/order!
+    # unmatched_genjets = ak.is_none(nearest_genjet_to_parton.pt, axis=1)
+    # matched_genjets_to_parton = nearest_genjet_to_parton[~unmatched_genjets]
 
     # Matching step 2 begins here!
     # calculated deltaR between matched Gen Jets and Jets
-    nearest_jets_to_genjets = matched_genjets_to_parton.nearest(jet_collection, threshold=0.4)
+    nearest_jets_to_genjets = nearest_genjet_to_parton.nearest(jet_collection, threshold=0.4)
     
     # calculation of the indices of the matched jets
-    metrics_jets_to_genjets = matched_genjets_to_parton.metric_table(jet_collection, axis=1)
+    metrics_jets_to_genjets = nearest_genjet_to_parton.metric_table(jet_collection, axis=1)
     mmin = ak.argmin(metrics_jets_to_genjets, axis=2, keepdims=True)
     metric = ak.firsts(metrics_jets_to_genjets[mmin], axis=2)
     
     mmin = ak.firsts(mmin.mask[metric <= 0.4], axis=2)
 
-     # filter unmatched cases
-    unmatched_jets = ak.is_none(nearest_jets_to_genjets.pt, axis=1)
-
+     # filter unmatched cases !!DO NOT FILTER THEM, it destroys indices/order!
+    # unmatched_jets = ak.is_none(nearest_jets_to_genjets.pt, axis=1)
     # genmatched jets (not the indices, but the objects):
-    matched_jets_to_genjets = nearest_jets_to_genjets[~unmatched_jets]
+    # matched_jets_to_genjets = nearest_jets_to_genjets[~unmatched_jets]
 
     # prepare HHBtagged Jet indices for the comparison with genmatchedJets:
     selected_hhbjet_indices=ak.pad_none(jet_results.objects.Jet.HHBJet,2,axis=1)
@@ -70,8 +71,9 @@ def genmatching_selector(
 
     # Comparison: HHBtagged Jets and Genmatched Jets: selection and matching begins here!
     # each genjet has (at least) one btag jet
-    matched_and_selected = ak.from_iter([np.isin(selected_hhbjet_indices[index], padded_mmin[index]) for index in range(len(padded_mmin))])
+    matched_and_selected = ak.from_iter([np.isin(padded_mmin[index], selected_hhbjet_indices[index]) for index in range(len(padded_mmin))])
     # TODO embed --> reihenfolge matched_and_selected
+    # embed()
 
     # event selection:
     at_least_one_jet_matched_event_selection=(
@@ -104,9 +106,8 @@ def genmatching_selector(
 
         return genjet_indices
     
-    # TODO: are genmatchedjets_indices and mmin the same?? Does the function work correctly?
-    genmatchedgenjets_indices = find_genjet_indices(array1 = events.genBpartonH, array2 = genBjets)
-    genmatchedjets_indices = find_genjet_indices(array1 = matched_genjets_to_parton, array2 = jet_collection)
+    genmatchedgenjets_indices = find_genjet_indices(array1 = events.genBpartonH, array2 = events.genBjets)
+    genmatchedjets_indices = find_genjet_indices(array1 = nearest_genjet_to_parton, array2 = jet_collection)
 
     def find_partons_id(events: ak.Array, pdgId: int, mother_pdgId: int=25):
         abs_id = abs(events.GenPart.pdgId)
@@ -115,26 +116,24 @@ def genmatching_selector(
         part_id = part_id[abs_id == pdgId]
         part_id = part_id[part.hasFlags("isHardProcess")& (abs(part.distinctParent.pdgId) == mother_pdgId)]
         part = part[part.hasFlags("isHardProcess")& (abs(part.distinctParent.pdgId) == mother_pdgId)]
-        part_id = part_id[~ak.is_none(part, axis=1)]
-        # TODO embed() --> reihenfolge partons
+        # part_id = part_id[~ak.is_none(part, axis=1)]
+        
         return part_id
 
     part_id = find_partons_id(events, pdgId=5, mother_pdgId=25)
 
     # embed()
     
-    # events = set_ak_column(events, "GenmatchedJets", events.Jet[mmin])
-    # events = set_ak_column(events, "GenmatchedHHBtagJets", events.Jet[selected_hhbjet_indices][matched_and_selected])
 
     print("genmatching_done")
 
     return events, SelectionResult(
-    # steps={
-    #     # Gen Matching Steps
-    #     "gen_matched_1":at_least_one_jet_matched_event_selection,
-    #     "first_matched":first_jet_matched_event_selection,
-    #     "gen_matched_2":two_jet_matched_event_selection,
-    #     },
+    steps={
+        # Gen Matching Steps
+        "gen_matched_1":at_least_one_jet_matched_event_selection,
+        "first_matched":first_jet_matched_event_selection,
+        "gen_matched_2":two_jet_matched_event_selection,
+        },
     objects={
         "GenPart":{
             "GenBPartons": part_id, # Gen Partons (before matching)
@@ -144,7 +143,7 @@ def genmatching_selector(
         },
         "Jet":{ 
             "GenmatchedJets": mmin, # detector jets (Matching Step 2)
-            "GenmatchedHHBtagJets": matched_and_selected,
+            "GenmatchedHHBtagJets": ak.mask(padded_mmin, matched_and_selected),
         }
         }
     )
