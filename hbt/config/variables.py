@@ -107,57 +107,58 @@ def add_variables(config: od.Config) -> None:
         name="delta_r_genbpartons",
         expression="delta_r_genbpartons",
         null_value=EMPTY_FLOAT,
-        binning=(50, 0, 1.5),
+        binning=(20, 0, 1.5),
         x_title=r"Delta R of two Gen Partons"
     )
     config.add_variable(
         name="delta_r_genmatchedgenjets",
         expression="delta_r_genmatchedgenjets",
         null_value=EMPTY_FLOAT,
-        binning=(50, 0, 1.5),
+        binning=(20, 0, 1.5),
         x_title=r"Delta R of two genmatched Gen Jets"
     )
     config.add_variable(
         name="delta_r_2_matches",
         expression="delta_r_2_matches",
         null_value=EMPTY_FLOAT,
-        binning=(50, 0, 1.5),
+        binning=(20, 0, 1.5),
         x_title=r"Delta R of two Gen matched jets"
     )
     config.add_variable(
         name="delta_r_HHbtag",
         expression="delta_r_HHbtag",
         null_value=EMPTY_FLOAT,
-        binning=(50, 0, 1.5),
+        binning=(20, 0, 1.5),
         x_title=r"Delta R of two Gen matched and HHbtag selected jets"
     )
     # pt of first matched jet:
+    # 1D plots 20 bins, 2D plots 50 bins
     config.add_variable(
         name="first_pt_genbpartons",
         expression="first_pt_genbpartons",
         null_value=EMPTY_FLOAT,
-        binning=(50, 0.0, 1000.0),
+        binning=(20, 0.0, 1000.0),
         x_title=r"pt of first Gen Parton"
     )
     config.add_variable(
         name="first_pt_genmatchedgenjets",
         expression="first_pt_genmatchedgenjets",
         null_value=EMPTY_FLOAT,
-        binning=(50, 0.0, 1000.0),
+        binning=(20, 0.0, 1000.0),
         x_title=r"pt of first genmatched Gen Jet"
     )
     config.add_variable(
         name="first_pt_2_matches",
         expression="first_pt_2_matches",
         null_value=EMPTY_FLOAT,
-        binning=(50, 0.0, 1000.0),
+        binning=(20, 0.0, 1000.0),
         x_title=r"pt of first matched jet"
     )
     config.add_variable(
         name="first_pt_btag",
         expression="first_pt_btag",
         null_value=EMPTY_FLOAT,
-        binning=(50, 0.0, 1000.0),
+        binning=(20, 0.0, 1000.0),
         x_title=r"pt of first Gen matched and HHbtag selected jet"
     )
     # pt sum of both matched jets:
@@ -165,28 +166,28 @@ def add_variables(config: od.Config) -> None:
         name="sum_pt_genbpartons",
         expression="sum_pt_genbpartons",
         null_value=EMPTY_FLOAT,
-        binning=(50, 0.0, 1000.0),
+        binning=(20, 0.0, 1000.0),
         x_title=r"sum: pt of first 2 matched Gen Partons"
     )
     config.add_variable(
         name="sum_pt_genmatchedgenjets",
         expression="sum_pt_genmatchedgenjets",
         null_value=EMPTY_FLOAT,
-        binning=(50, 0.0, 1000.0),
+        binning=(20, 0.0, 1000.0),
         x_title=r"sum: pt of first 2 genmatched Gen Jets"
     )
     config.add_variable(
         name="sum_pt_2_matches",
         expression="sum_pt_2_matches",
         null_value=EMPTY_FLOAT,
-        binning=(50, 0.0, 1000.0),
+        binning=(20, 0.0, 1000.0),
         x_title=r"sum: pt of first 2 matched jets"
     )
     config.add_variable(
         name="sum_pt_btag",
         expression="sum_pt_btag",
         null_value=EMPTY_FLOAT,
-        binning=(50, 0.0, 1000.0),
+        binning=(20, 0.0, 1000.0),
         x_title=r"sum: pt of first 2 matched and selected jets"
     )
 
