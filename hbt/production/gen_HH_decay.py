@@ -54,6 +54,26 @@ def gen_HH_decay_products(self: Producer, events: ak.Array, **kwargs) -> ak.Arra
     events = set_ak_column(events, "genTaupartonH", gen_tau_from_h)
     return events
 
+@producer(
+        uses={
+            # nano columns
+            "event",
+            "isHardProcess",
+            "nGenPart", "GenPart.*",
+            "nGenJet", "GenJet.*",
+        },
+        produces={
+            "genBpartonH", "genTaupartonH",
+        },
+        sandbox=dev_sandbox("bash::$HBT_BASE/sandboxes/venv_columnar.sh"),
+)
+def create_genbjets(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
+    """
+    Creates gen jets with correct flavour.
+    """
+    genBjets = events.GenJet[abs(events.GenJet.partonFlavour) == 5]
+    events = set_ak_column(events, "genBjets", genBjets)
+    return events
 
 @gen_HH_decay_products.init
 def gen_HH_decay_products_init(self: Producer) -> None:
