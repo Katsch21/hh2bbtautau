@@ -9,7 +9,7 @@ from columnflow.columnar_util import set_ak_column
 from collections import defaultdict, OrderedDict
 from IPython import embed
 
-from hbt.production.gen_HH_decay import gen_HH_decay_products, create_genbjets
+from hbt.production.gen_HH_decay import gen_HH_decay_products
 
 
 np = maybe_import("numpy")
@@ -20,7 +20,7 @@ ak = maybe_import("awkward")
         "Jet.pt", "Jet.eta", "Jet.phi", "Jet.jetId", "Jet.puId",
         "nGenJet", "GenJet.*",
         "nGenVisTau", "GenVisTau.*", "Jet.genJetIdx", "Tau.genPartIdx",
-        gen_HH_decay_products.PRODUCES, create_genbjets.PRODUCES,
+        gen_HH_decay_products.PRODUCES, 
     },
     produces={
         "GenmatchedJets", "GenmatchedHHBtagJets", "GenBPartons",
@@ -37,13 +37,13 @@ def genmatching_selector(
     
     # match genJets to genPartons from H
     # get GenJets with b as partonFlavour
-    # genBjets = events.GenJet[abs(events.GenJet.partonFlavour) == 5] # now a column
+    genBjets = events.GenJet[abs(events.GenJet.partonFlavour) == 5] # now a column
     # check how partons are sorted:
     # embed()
 
     # Matching step 1 begins here!
     # calculate deltaR between genBjets and gen b partons from H
-    nearest_genjet_to_parton = events.genBpartonH.nearest(events.genBjets, threshold=0.4)
+    nearest_genjet_to_parton = events.genBpartonH.nearest(genBjets, threshold=0.4)
 
     # filter unmatched cases !!DO NOT FILTER THEM, it destroys indices/order!
     # unmatched_genjets = ak.is_none(nearest_genjet_to_parton.pt, axis=1)
@@ -106,7 +106,9 @@ def genmatching_selector(
 
         return genjet_indices
     
-    genmatchedgenjets_indices = find_genjet_indices(array1 = events.genBpartonH, array2 = events.genBjets)
+    genmatchedgenbjets_indices = find_genjet_indices(array1 = events.genBpartonH, array2 = genBjets)
+    genmatchedgenjets_indices = ak.local_index(events.GenJet)[abs(events.GenJet.partonFlavour) == 5][genmatchedgenbjets_indices]
+    # embed()
     genmatchedjets_indices = find_genjet_indices(array1 = nearest_genjet_to_parton, array2 = jet_collection)
 
     def find_partons_id(events: ak.Array, pdgId: int, mother_pdgId: int=25):
@@ -116,24 +118,22 @@ def genmatching_selector(
         part_id = part_id[abs_id == pdgId]
         part_id = part_id[part.hasFlags("isHardProcess")& (abs(part.distinctParent.pdgId) == mother_pdgId)]
         part = part[part.hasFlags("isHardProcess")& (abs(part.distinctParent.pdgId) == mother_pdgId)]
-        # part_id = part_id[~ak.is_none(part, axis=1)]
-        
+        part_id = part_id[~ak.is_none(part, axis=1)]
+        # embed()
         return part_id
 
     part_id = find_partons_id(events, pdgId=5, mother_pdgId=25)
-
-    # embed()
     
 
     print("genmatching_done")
 
     return events, SelectionResult(
-    steps={
-        # Gen Matching Steps
-        "gen_matched_1":at_least_one_jet_matched_event_selection,
-        "first_matched":first_jet_matched_event_selection,
-        "gen_matched_2":two_jet_matched_event_selection,
-        },
+    # steps={
+    #     # Gen Matching Steps
+    #     "gen_matched_1":at_least_one_jet_matched_event_selection,
+    #     "first_matched":first_jet_matched_event_selection,
+    #     "gen_matched_2":two_jet_matched_event_selection,
+    #     },
     objects={
         "GenPart":{
             "GenBPartons": part_id, # Gen Partons (before matching)
