@@ -137,6 +137,7 @@ def genmatched_delta_r(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         # new_mask = ak.is_none(real_deltars_filled)
         real_deltars_filled_axiszero = ak.fill_none(real_deltars_filled, [0], axis=0)
         mask = ak.num(array, axis=1) == num_objects
+        # embed()
         return ak.where(mask, ak.flatten(real_deltars_filled_axiszero), EMPTY_FLOAT)
     # embed()
     events = set_ak_column_f32(events, "delta_r_genbpartons", calculate_delta_r(events.GenBPartons))
