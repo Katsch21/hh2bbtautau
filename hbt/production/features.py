@@ -35,7 +35,7 @@ set_ak_column_i32 = functools.partial(set_ak_column, value_type=np.int32)
 def features(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     events = set_ak_column_f32(events, "ht", ak.sum(events.Jet.pt, axis=1))
     events = set_ak_column_i32(events, "n_jet", ak.num(events.Jet.pt, axis=1))
-    events = set_ak_column_i32(events, "n_hhbtag", ak.num(events.HHBJet.pt, axis=1))
+    # events = set_ak_column_i32(events, "n_hhbtag", ak.num(events.HHBJet.pt, axis=1))
     events = set_ak_column_i32(events, "n_electron", ak.num(events.Electron.pt, axis=1))
     events = set_ak_column_i32(events, "n_muon", ak.num(events.Muon.pt, axis=1))
 
