@@ -62,4 +62,49 @@ def gen_HH_decay_products_init(self: Producer) -> None:
     a dataset including top decays is processed.
     """
     self.uses |= {"nGenPart", "GenPart.*", "nGenJet", 'GenJet.*'}
-    self.produces |= {"genBpartonH", "genTaupartonH"}
+    self.produces |= {"genBpartonH.*", "genTaupartonH.*"}
+
+@producer(
+        uses={
+            # nano columns
+            "event",
+            "isHardProcess",
+            "nGenPart", "GenPart.*",
+        },
+        sandbox=dev_sandbox("bash::$HBT_BASE/sandboxes/venv_columnar.sh"),
+)
+def gen_HH_decay_product_idx(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
+    """
+    Creates a new ragged column "gen_top_decay" with one element per hard top quark. Each element is
+    a GenParticleArray with five or more objects in a distinct order: top quark, bottom quark,
+    W boson, down-type quark or charged lepton, up-type quark or neutrino, and any additional decay
+    produces of the W boson (if any, then most likly photon radiations). Per event, the structure
+    will be similar to:
+
+    .. code-block:: python
+
+        [[t1, b1, W1, q1/l, q2/n(, additional_w_decay_products)], [t2, ...], ...]
+    """
+
+    def find_partons(events: ak.Array, pdgId: int, mother_pdgId: int=25):
+        # get all GenPart indices
+        idx = ak.local_index(events.GenPart, axis=1)
+
+        # filter requirements for interesting partons
+        abs_id = abs(events.GenPart.pdgId)
+        mask = (
+            (abs_id == pdgId) &
+            events.GenPart.hasFlags("isHardProcess") &
+            (abs(events.GenPart.distinctParent.pdgId) == mother_pdgId)
+        )
+        
+        # fill None values with False
+        mask = ak.fill_none(mask, False)
+        idx = idx[mask]
+        from IPython import embed
+        embed()
+        return idx
+    # from IPython import embed; embed()
+    
+    return find_partons(events, 5, 25)
+
