@@ -128,12 +128,12 @@ def genmatching_selector(
     print("genmatching_done")
 
     return events, SelectionResult(
-    # steps={
-    #     # Gen Matching Steps
-    #     "gen_matched_1":at_least_one_jet_matched_event_selection,
-    #     "first_matched":first_jet_matched_event_selection,
-    #     "gen_matched_2":two_jet_matched_event_selection,
-    #     },
+    steps={
+        # Gen Matching Steps
+        "gen_matched_1":at_least_one_jet_matched_event_selection,
+        "first_matched":first_jet_matched_event_selection,
+        "gen_matched_2":two_jet_matched_event_selection,
+        },
     objects={
         "GenPart":{
             "GenBPartons": part_id, # Gen Partons (before matching)
