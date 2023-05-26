@@ -1,7 +1,7 @@
 # coding: utf-8
 
 """
-Calculate Delta R values and pt of first jet to check GenJets and btags.
+Calculate Delta R values pt of first jet and sum of 1st and 2nd jet pt.
 """
 
 import law
@@ -12,6 +12,7 @@ from columnflow.util import maybe_import
 from columnflow.columnar_util import EMPTY_FLOAT, Route, set_ak_column
 from columnflow.production.util import attach_coffea_behavior
 from hbt.selection.genmatching import genmatching_selector
+from hbt.production.gen_HH_decay import gen_HH_decay_products
 from IPython import embed
 
 ak = maybe_import("awkward")
@@ -144,7 +145,7 @@ def genmatched_delta_r(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     events = set_ak_column_f32(events, "delta_r_genmatchedgenjets", calculate_delta_r(events.GenmatchedGenJets))
     events = set_ak_column_f32(events, "delta_r_2_matches", calculate_delta_r(events.GenmatchedJets))
     events = set_ak_column_f32(events, "delta_r_HHbtag", calculate_delta_r(events.GenmatchedHHBtagJets))
-
+    # embed()
     return events
 
 @producer(
@@ -199,5 +200,46 @@ def get_pt(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     events = set_ak_column_f32(events, "sum_pt_genmatchedgenjets", sum_pt_genmatchedgenjets)
     events = set_ak_column_f32(events, "sum_pt_2_matches", sum_pt_2_matches)
     events = set_ak_column_f32(events, "sum_pt_btag", sum_pt_btag)
+
+    return events
+
+@producer(
+    uses={
+        "GenBpartonH.*", genmatching_selector, attach_coffea_behavior,
+        # "GenPart.pt", "GenPart.eta", "GenPart.phi", "GenPart.pdgId",
+
+    },
+    produces={
+        "delta_r_partons_boosted",
+    },
+)
+def partons_delta_r(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
+    """
+    Creates new column: 'delta_r_partons_boosted' for delta R value of the first two Gen Partons.
+    """
+
+    collections = {x: {"type_name" : "GenParticle", "skip_fields": "*Idx*G",} for x in ["GenBpartonH"]}
+
+    events = self[attach_coffea_behavior](events, collections=collections, **kwargs)
+    
+    def calculate_delta_r(array: ak.Array, num_objects: int=2):
+        # calculate all possible delta R values (all permutations):
+        all_deltars = array.metric_table(array)
+        min_deltars_permutations = ak.firsts(all_deltars)
+        real_deltar_mask = min_deltars_permutations != 0
+        # real_deltars = ak.mask(min_deltars_permutations, real_deltar_mask)
+        real_deltars = min_deltars_permutations[real_deltar_mask]
+        real_deltars_padded = ak.pad_none(real_deltars, 1, axis=1)
+        real_deltars_filled = ak.fill_none(real_deltars_padded, 0, axis=1)
+        # still Nones in axis 0
+        # new_mask = ak.is_none(real_deltars_filled)
+        real_deltars_filled_axiszero = ak.fill_none(real_deltars_filled, [0], axis=0)
+        mask = ak.num(array, axis=1) == num_objects
+        # embed()
+        from IPython import embed
+        embed()
+        return ak.where(mask, ak.flatten(real_deltars_filled_axiszero), EMPTY_FLOAT)
+    
+    events = set_ak_column_f32(events, "delta_r_genbpartons", calculate_delta_r(events.GenBpartonH))
 
     return events
