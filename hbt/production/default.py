@@ -26,7 +26,7 @@ ak = maybe_import("awkward")
     uses={
         category_ids, features, normalization_weights, normalized_pdf_weight,
         normalized_murmuf_weight, normalized_pu_weight, normalized_btag_weights,
-        tau_weights, electron_weights, muon_weights, trigger_weights, 
+        tau_weights, electron_weights, muon_weights, trigger_weights,
         genmatching_selector.PRODUCES, genmatching_selector, genmatched_delta_r, get_pt,
     },
     produces={
@@ -42,6 +42,8 @@ def default(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
 
     # features
     events = self[features](events, **kwargs)
+    from IPython import embed
+    embed()
 
     # mc-only weights
     if self.dataset_inst.is_mc:
