@@ -16,6 +16,7 @@ import order as od
 from scinum import Number
 
 from columnflow.util import DotDict, dev_sandbox
+from columnflow.columnar_util import Route
 from columnflow.config_util import (
     get_root_processes_from_campaign, add_shift_aliases, get_shifts_from_sources,
 )
@@ -642,13 +643,15 @@ def add_config(
 
     # columns to keep after certain steps
     cfg.x.keep_columns = DotDict.wrap({
+        "cf.SelectEvents": {
+            "channel_id",
+        },
         "cf.ReduceEvents": {
             # general event info
             "run", "luminosityBlock", "event",
             # object info
             "Jet.pt", "Jet.eta", "Jet.phi", "Jet.mass", "Jet.btagDeepFlavB", "Jet.hadronFlavour",
             "Jet.hhbtag", "nJet",
-            "FatJet.pt", # we added this one
             "HHBJet.pt", "HHBJet.eta", "HHBJet.phi", "HHBJet.mass", "HHBJet.btagDeepFlavB",
             "HHBJet.hadronFlavour", "HHBJet.hhbtag",
             "NonHHBJet.pt", "NonHHBJet.eta", "NonHHBJet.phi", "NonHHBJet.mass",
@@ -661,22 +664,29 @@ def add_config(
             "Tau.decayMode",
             "MET.pt", "MET.phi", "MET.significance", "MET.covXX", "MET.covXY", "MET.covYY",
             "nGenPart", "GenPart.*", "nGenJet", 'GenJet.*','GenVisTau.*','nGenVisTau',
+            "isHardProcess",
             "GenBPartons.*",
+            "GenBpartonH.*",
             "PV.npvs",
             ####################
             ### my own variables
             # btags
-            # "Jet.btagDeepFlavB", 
+            # "Jet.btagDeepFlavB",
             "Jet.btagDeepFlavCvB",
             # fatjets
-            "FatJet.btagHbb", "FatJet.deepTag.H", "FatJet.deepTagMD.H4qvsQCD", "FatJet.deepTagMD.HbbvsQCD",
+            "FatJet.deepTag.H", "FatJet.deepTagMD.H4qvsQCD", "FatJet.deepTagMD.HbbvsQCD",
             "FatJet.particleNetMD.Xbb", "FatJet.particleNet.H4qvsQCD", "FatJet.particleNet.HbbvsQCD",
             # deeptau
             "Tau.rawDeepTau2017v2p1VSe", "Tau.rawDeepTau2017v2p1VSjet", "Tau.rawDeepTau2017v2p1VSmu",
+            # delta r boosted selection
+            "delta_r_partons_boosted",
             # delta r plots
             "delta_r_2_matches", "delta_r_btag", "delta_r_HHbtag", "delta_r_genbpartons", "delta_r_genmatchedgenjets",
             "first_pt_2_matches", "first_pt_btag", "first_pt_genbpartons", "first_pt_genmatchedgenjets",
             "sum_pt_2_matches", "sum_pt_btag", "sum_pt_genbpartons", "sum_pt_genmatchedgenjets",
+            # invariant mass bjets
+            "HHBJet_dijet_mass",
+            # FatJet tagger hardest jet
             # columns added during selection
             "channel_id", "process_id", "category_ids", "mc_weight", "pdf_weight*", "murmuf_weight*",
             "leptons_os", "tau2_isolated", "single_triggered", "cross_triggered",
@@ -686,7 +696,9 @@ def add_config(
             "GenmatchedJets.pt", "GenmatchedJets.eta", "GenmatchedJets.phi", "GenmatchedJets.mass", 
             "GenmatchedHHBtagJets.pt", "GenmatchedHHBtagJets.eta", "GenmatchedHHBtagJets.phi", "GenmatchedHHBtagJets.mass", 
             "deterministic_seed", "pu_weight*", "btag_weight*", "cutflow.*",
-        },
+        } | {Route(f"FatJet.{x}") for x in ["btagHbb", "btagCSVV2", "btagDeepB", "deepTagMD_H4qvsQCD",
+                "deepTagMD_HbbvsQCD", "deepTagMD_ZHbbvsQCD", "deepTag_H",
+                "particleNetMD_Xbb", "particleNet_HbbvsQCD", "pt",]},
         "cf.MergeSelectionMasks": {
             "normalization_weight", "process_id", "category_ids", "cutflow.*",
         },

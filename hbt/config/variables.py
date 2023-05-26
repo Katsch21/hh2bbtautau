@@ -85,8 +85,165 @@ def add_variables(config: od.Config) -> None:
         x_title=r"MET $\phi$",
     )
 
-    # TODO: add more variables that are important for my selections.
-    
+    ###################################################################
+    ###################################################################
+    # TODO: add more variables that are important for my selections
+
+    # invariant mass bjets:
+    config.add_variable(
+        name="HHBJet_dijet_mass",
+        expression="HHBJet_dijet_mass",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0, 1000),
+        x_title=r"DeepJet b+bb+lepb tag discriminator "
+    )
+
+    # fatjet tagger: highest pt
+    config.add_variable(
+        name="HardestFatJet.btagHbb",
+        expression="HardestFatJet.btagHbb",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0, 1),
+        x_title=r"Hardest jet of FatJet_btagHbb discriminator"
+    )
+    config.add_variable(
+        name="HardestFatJet.btagCSVV2",
+        expression="HardestFatJet.btagCSVV2",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0, 1),
+        x_title=r"Hardest jet of FatJet_btagCSVV2 discriminator"
+    )
+    config.add_variable(
+        name="HardestFatJet.btagDeepB",
+        expression="HardestFatJet.btagDeepB",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0, 1),
+        x_title=r"Hardest jet of FatJet_btagDeepB discriminator"
+    )
+    config.add_variable(
+        name="HardestFatJet.deepTagMD_H4qvsQCD",
+        expression="HardestFatJet.deepTagMD_H4qvsQCD",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0, 1),
+        x_title=r"Hardest jet of FatJet_deepTagMD_H4qvsQCD discriminator"
+    )
+    config.add_variable(
+        name="HardestFatJet.deepTagMD_HbbvsQCD",
+        expression="HardestFatJet.deepTagMD_HbbvsQCD",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0, 1),
+        x_title=r"Hardest jet of FatJet_deepTagMD_HbbvsQCD discriminator"
+    )
+    config.add_variable(
+        name="HardestFatJet.deepTagMD_ZHbbvsQCD",
+        expression="HardestFatJet.deepTagMD_ZHbbvsQCD",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0, 1),
+        x_title=r"Hardest jet of FatJet_deepTagMD_ZHbbvsQCD discriminator"
+    )
+    config.add_variable(
+        name="HardestFatJet.deepTag_H",
+        expression="HardestFatJet.deepTag_H",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0, 1),
+        x_title=r"Hardest jet of FatJet_deepTag_H discriminator"
+    )
+    config.add_variable(
+        name="HardestFatJet.particleNetMD_Xbb",
+        expression="HardestFatJet.particleNetMD_Xbb",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0, 1),
+        x_title=r"Hardest jet of FatJet_particleNetMD_Xbb discriminator"
+    )
+    config.add_variable(
+        name="HardestFatJet.particleNet_HbbvsQCD",
+        expression="HardestFatJet.particleNet_HbbvsQCD",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0, 1),
+        x_title=r"Hardest jet of FatJet_particleNet_HbbvsQCD discriminator"
+    )
+    config.add_variable(
+        name="HardestFatJet.pt",
+        expression="HardestFatJet.pt",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0, 1000),
+        x_title=r"pt of hardest jet"
+    )
+
+    ################################
+    # fatjet tagger: sortiert nach observablen
+    config.add_variable(
+        name="FirstFatJet.btagHbb",
+        expression="FirstFatJet.btagHbb",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0, 1),
+        x_title=r"Jet with highest FatJet_btagHbb discriminator value"
+    )
+    config.add_variable(
+        name="FirstFatJet.btagCSVV2",
+        expression="FirstFatJet.btagCSVV2",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0, 1),
+        x_title=r"Jet with highest FatJet_btagCSVV2 discriminator value"
+    )
+    config.add_variable(
+        name="FirstFatJet.btagDeepB",
+        expression="FirstFatJet.btagDeepB",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0, 1),
+        x_title=r"Jet with highest FatJet_btagDeepB discriminator value"
+    )
+    config.add_variable(
+        name="FirstFatJet.deepTagMD_H4qvsQCD",
+        expression="FirstFatJet.deepTagMD_H4qvsQCD",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0, 1),
+        x_title=r"Jet with highest FatJet_deepTagMD_H4qvsQCD discriminator value"
+    )
+    config.add_variable(
+        name="FirstFatJet.deepTagMD_HbbvsQCD",
+        expression="FirstFatJet.deepTagMD_HbbvsQCD",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0, 1),
+        x_title=r"Jet with highest FatJet_deepTagMD_HbbvsQCD discriminator value"
+    )
+    config.add_variable(
+        name="FirstFatJet.deepTagMD_ZHbbvsQCD",
+        expression="FirstFatJet.deepTagMD_ZHbbvsQCD",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0, 1),
+        x_title=r"Jet with highest FatJet_deepTagMD_ZHbbvsQCD discriminator value"
+    )
+    config.add_variable(
+        name="FirstFatJet.deepTag_H",
+        expression="FirstFatJet.deepTag_H",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0, 1),
+        x_title=r"Jet with highest FatJet_deepTag_H discriminator value"
+    )
+    config.add_variable(
+        name="FirstFatJet.particleNetMD_Xbb",
+        expression="FirstFatJet.particleNetMD_Xbb",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0, 1),
+        x_title=r"Jet with highest FatJet_particleNetMD_Xbb discriminator value"
+    )
+    config.add_variable(
+        name="FirstFatJet.particleNet_HbbvsQCD",
+        expression="FirstFatJet.particleNet_HbbvsQCD",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0, 1),
+        x_title=r"Jet with highest FatJet_particleNet_HbbvsQCD discriminator value"
+    )
+    config.add_variable(
+        name="FirstFatJet.pt",
+        expression="FirstFatJet.pt",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0, 1000),
+        x_title=r"pt of hardest jet"
+    )
+    #############################
+
     # btags:
     config.add_variable(
         name="jet1_btag_deepflavb",
@@ -102,33 +259,43 @@ def add_variables(config: od.Config) -> None:
         binning=(100, 0, 1),
         x_title=r"DeepJet c vs b+bb+lepb discriminator (inverted c tagger)"
     )
-    # delta R:
+    ###################
+    # delta R boosted:
+    config.add_variable(
+        name="delta_r_partons_boosted",
+        expression="delta_r_partons_boosted",
+        null_value=EMPTY_FLOAT,
+        binning=(20, 0, 1.5),
+        x_title=r"Delta R of two Gen Partons, boosted selection"
+    )
+
+    # delta R resolved:
     config.add_variable(
         name="delta_r_genbpartons",
         expression="delta_r_genbpartons",
         null_value=EMPTY_FLOAT,
-        binning=(50, 0, 1.5),
+        binning=(20, 0, 1.5),
         x_title=r"Delta R of two Gen Partons"
     )
     config.add_variable(
         name="delta_r_genmatchedgenjets",
         expression="delta_r_genmatchedgenjets",
         null_value=EMPTY_FLOAT,
-        binning=(50, 0, 1.5),
+        binning=(20, 0, 1.5),
         x_title=r"Delta R of two genmatched Gen Jets"
     )
     config.add_variable(
         name="delta_r_2_matches",
         expression="delta_r_2_matches",
         null_value=EMPTY_FLOAT,
-        binning=(50, 0, 1.5),
+        binning=(20, 0, 1.5),
         x_title=r"Delta R of two Gen matched jets"
     )
     config.add_variable(
         name="delta_r_HHbtag",
         expression="delta_r_HHbtag",
         null_value=EMPTY_FLOAT,
-        binning=(50, 0, 1.5),
+        binning=(20, 0, 1.5),
         x_title=r"Delta R of two Gen matched and HHbtag selected jets"
     )
     # pt of first matched jet:
@@ -137,28 +304,28 @@ def add_variables(config: od.Config) -> None:
         name="first_pt_genbpartons",
         expression="first_pt_genbpartons",
         null_value=EMPTY_FLOAT,
-        binning=(50, 0.0, 1000.0),
+        binning=(20, 0.0, 1000.0),
         x_title=r"pt of first Gen Parton"
     )
     config.add_variable(
         name="first_pt_genmatchedgenjets",
         expression="first_pt_genmatchedgenjets",
         null_value=EMPTY_FLOAT,
-        binning=(50, 0.0, 1000.0),
+        binning=(20, 0.0, 1000.0),
         x_title=r"pt of first genmatched Gen Jet"
     )
     config.add_variable(
         name="first_pt_2_matches",
         expression="first_pt_2_matches",
         null_value=EMPTY_FLOAT,
-        binning=(50, 0.0, 1000.0),
+        binning=(20, 0.0, 1000.0),
         x_title=r"pt of first matched jet"
     )
     config.add_variable(
         name="first_pt_btag",
         expression="first_pt_btag",
         null_value=EMPTY_FLOAT,
-        binning=(50, 0.0, 1000.0),
+        binning=(20, 0.0, 1000.0),
         x_title=r"pt of first Gen matched and HHbtag selected jet"
     )
     # pt sum of both matched jets:
@@ -166,28 +333,28 @@ def add_variables(config: od.Config) -> None:
         name="sum_pt_genbpartons",
         expression="sum_pt_genbpartons",
         null_value=EMPTY_FLOAT,
-        binning=(50, 0.0, 1000.0),
-        x_title=r"sum: pt of first 2 matched Gen Partons"
+        binning=(20, 0.0, 1000.0),
+        x_title=r"sum: pt of first 2 Gen Partons"
     )
     config.add_variable(
         name="sum_pt_genmatchedgenjets",
         expression="sum_pt_genmatchedgenjets",
         null_value=EMPTY_FLOAT,
-        binning=(50, 0.0, 1000.0),
+        binning=(20, 0.0, 1000.0),
         x_title=r"sum: pt of first 2 genmatched Gen Jets"
     )
     config.add_variable(
         name="sum_pt_2_matches",
         expression="sum_pt_2_matches",
         null_value=EMPTY_FLOAT,
-        binning=(50, 0.0, 1000.0),
+        binning=(20, 0.0, 1000.0),
         x_title=r"sum: pt of first 2 matched jets"
     )
     config.add_variable(
         name="sum_pt_btag",
         expression="sum_pt_btag",
         null_value=EMPTY_FLOAT,
-        binning=(50, 0.0, 1000.0),
+        binning=(20, 0.0, 1000.0),
         x_title=r"sum: pt of first 2 matched and selected jets"
     )
 
