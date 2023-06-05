@@ -101,8 +101,8 @@ def gen_HH_decay_product_idx(self: Producer, events: ak.Array, **kwargs) -> ak.A
         # fill None values with False
         mask = ak.fill_none(mask, False)
         idx = idx[mask]
-        from IPython import embed
-        embed()
+        # from IPython import embed
+        # embed()
         return idx
     # from IPython import embed; embed()
     
