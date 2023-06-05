@@ -72,8 +72,6 @@ def genmatching_selector(
     # Comparison: HHBtagged Jets and Genmatched Jets: selection and matching begins here!
     # each genjet has (at least) one btag jet
     matched_and_selected = ak.from_iter([np.isin(padded_mmin[index], selected_hhbjet_indices[index]) for index in range(len(padded_mmin))])
-    # TODO embed --> reihenfolge matched_and_selected
-    # embed()
 
     # event selection:
     at_least_one_jet_matched_event_selection=(
