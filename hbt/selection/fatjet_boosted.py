@@ -19,10 +19,12 @@ from hbt.selection.boosted_jet import boosted_jet_selector
 from hbt.selection.fatjet import fatjet_selection
 from hbt.selection.lepton import lepton_selection
 from hbt.selection.trigger import trigger_selection
+from hbt.selection.genmatching_fatjet import fatjet_genmatching_selector
 from hbt.selection.default import increment_stats
+from hbt.production.b_invariant_mass import invariant_mass_fatjets
 from hbt.production.gen_HH_decay import gen_HH_decay_products
 # from hbt.selection.genmatching import genmatching_selector
-from hbt.production.delta_r import delta_r, get_pt, genmatched_delta_r
+from hbt.production.delta_r import delta_r, get_pt, genmatched_delta_r, partons_delta_r
 from IPython import embed
 
 np = maybe_import("numpy")
@@ -60,13 +62,15 @@ def print_efficiency(results, skip_steps_list1, skip_steps_list2, name_selection
     uses={boosted_jet_selector, lepton_selection, trigger_selection,
         process_ids, increment_stats, attach_coffea_behavior,
         btag_weights, pu_weight, mc_weight, pdf_weights, murmuf_weights,
-        cutflow_features, fatjet_selection,
+        cutflow_features, fatjet_selection, invariant_mass_fatjets, partons_delta_r, 
+        fatjet_genmatching_selector,
         },
     produces={
         trigger_selection, lepton_selection, boosted_jet_selector,
         process_ids, increment_stats, attach_coffea_behavior,
         btag_weights, pu_weight, mc_weight, pdf_weights, murmuf_weights,
-        cutflow_features, fatjet_selection,
+        cutflow_features, fatjet_selection, invariant_mass_fatjets, partons_delta_r, 
+        fatjet_genmatching_selector,
     },
     sandbox=dev_sandbox("bash::$HBT_BASE/sandboxes/venv_columnar_tf.sh"),
     exposed=True,
@@ -98,6 +102,9 @@ def fatjet_boosted(
     events, fatjet_results = self[fatjet_selection](events, trigger_results, lepton_results, **kwargs)
     results += fatjet_results
 
+    events, genmatching_fatjet_results = self[fatjet_genmatching_selector](events, fatjet_results, **kwargs)
+    results += genmatching_fatjet_results
+
     # mc-only functions
     if self.dataset_inst.is_mc:
         # pdf weights
@@ -112,7 +119,7 @@ def fatjet_boosted(
         # btag weights
         events = self[btag_weights](events, results.x.jet_mask, **kwargs)
 
-    print_efficiency(results, skip_steps_list1=["fatjet_sel"], 
+    print_efficiency(results, skip_steps_list1=["fatjet_subjet_tagging_sel", "fatjet_sel"], 
                      skip_steps_list2=[], name_selection1="lepton_selection", 
                      name_selection2="fatjet_selection")
 
@@ -125,8 +132,7 @@ def fatjet_boosted(
     )
 
     print("CHECK FATJETS")
-    from IPython import embed
-    embed()
+    # embed()
 
     # create process ids
     events = self[process_ids](events, **kwargs)
