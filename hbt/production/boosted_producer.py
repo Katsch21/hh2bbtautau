@@ -16,9 +16,9 @@ from hbt.production.weights import normalized_pu_weight, normalized_pdf_weight, 
 from hbt.production.btag import normalized_btag_weights
 from hbt.production.tau import tau_weights, trigger_weights
 from hbt.production.fatjet_tagger import fatjet_tagging_variables
-from hbt.production.b_invariant_mass import invariant_mass
+from hbt.production.b_invariant_mass import invariant_mass_fatjets
 from hbt.production.delta_r import partons_delta_r
-
+from hbt.selection.genmatching_fatjet import fatjet_genmatching_selector
 
 
 ak = maybe_import("awkward")
@@ -28,14 +28,14 @@ ak = maybe_import("awkward")
     uses={
         category_ids, features, normalization_weights, normalized_pdf_weight,
         normalized_murmuf_weight, normalized_pu_weight, normalized_btag_weights,
-        tau_weights, electron_weights, muon_weights, trigger_weights, fatjet_tagging_variables.PRODUCES,
-        fatjet_tagging_variables, invariant_mass.PRODUCES, partons_delta_r,
+        tau_weights, electron_weights, muon_weights, trigger_weights,
+        fatjet_tagging_variables, invariant_mass_fatjets, partons_delta_r, fatjet_genmatching_selector,
     },
     produces={
         category_ids, features, normalization_weights, normalized_pdf_weight,
         normalized_murmuf_weight, normalized_pu_weight, normalized_btag_weights,
         tau_weights, electron_weights, muon_weights, trigger_weights, fatjet_tagging_variables,
-        invariant_mass, partons_delta_r,
+        invariant_mass_fatjets, partons_delta_r, "delta_r_partons_boosted",
     },
 )
 def boosted_producer(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
@@ -79,7 +79,10 @@ def boosted_producer(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     # mc-only variables
     if self.dataset_inst.is_mc:
         # events = self[invariant_mass](events, **kwargs)
+        #from IPython import embed
+        #embed()
         events = self[partons_delta_r](events, **kwargs)
         events = self[fatjet_tagging_variables](events, **kwargs)
+        events = self[invariant_mass_fatjets](events, **kwargs)
 
     return events
