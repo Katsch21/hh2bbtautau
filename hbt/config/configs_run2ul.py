@@ -665,7 +665,7 @@ def add_config(
             "MET.pt", "MET.phi", "MET.significance", "MET.covXX", "MET.covXY", "MET.covYY",
             "nGenPart", "GenPart.*", "nGenJet", 'GenJet.*','GenVisTau.*','nGenVisTau',
             "isHardProcess",
-            "GenBPartons.*",
+            "GenBPartons.*", 
             "GenBpartonH.*",
             "PV.npvs",
             ####################
@@ -674,12 +674,15 @@ def add_config(
             # "Jet.btagDeepFlavB",
             "Jet.btagDeepFlavCvB",
             # fatjets
-            "FatJet.deepTag.H", "FatJet.deepTagMD.H4qvsQCD", "FatJet.deepTagMD.HbbvsQCD",
-            "FatJet.particleNetMD.Xbb", "FatJet.particleNet.H4qvsQCD", "FatJet.particleNet.HbbvsQCD",
+            "FatJet.pt",
+            "FatJet.btagHbb", "FatJet.btagCSVV2", "FatJet.btagDeepB",
+            "FatJet.deepTag_H", "FatJet.deepTagMD_H4qvsQCD", "FatJet.deepTagMD_HbbvsQCD", "FatJet.deepTagMD_ZHbbvsQCD",
+            "FatJet.particleNetMD_Xbb", "FatJet.particleNet_H4qvsQCD", "FatJet.particleNet_HbbvsQCD",
+            "FatJet.eta", "FatJet.phi", "FatJet.mass",
             # deeptau
             "Tau.rawDeepTau2017v2p1VSe", "Tau.rawDeepTau2017v2p1VSjet", "Tau.rawDeepTau2017v2p1VSmu",
             # delta r boosted selection
-            "delta_r_partons_boosted",
+            # "delta_r_partons_boosted",
             # delta r plots
             "delta_r_2_matches", "delta_r_btag", "delta_r_HHbtag", "delta_r_genbpartons", "delta_r_genmatchedgenjets",
             "first_pt_2_matches", "first_pt_btag", "first_pt_genbpartons", "first_pt_genmatchedgenjets",
@@ -691,14 +694,14 @@ def add_config(
             "channel_id", "process_id", "category_ids", "mc_weight", "pdf_weight*", "murmuf_weight*",
             "leptons_os", "tau2_isolated", "single_triggered", "cross_triggered",
             "genBpartonH.pt", "genBpartonH.eta", "genBpartonH.phi", "genBpartonH.mass", 
+            "GenmatchedGenFatJets.pt", "GenmatchedGenFatJets.eta", "GenmatchedGenFatJets.phi", "GenmatchedGenFatJets.mass",
             "genTaupartonH.pt", "genTaupartonH.eta", "genTaupartonH.phi", "genTaupartonH.mass",
             "GenmatchedGenJets.*",
+            "GenmatchedFatJets.*","GenmatchedHBBFatJets.*", "GenmatchedXBBFatJets.*",
             "GenmatchedJets.pt", "GenmatchedJets.eta", "GenmatchedJets.phi", "GenmatchedJets.mass", 
             "GenmatchedHHBtagJets.pt", "GenmatchedHHBtagJets.eta", "GenmatchedHHBtagJets.phi", "GenmatchedHHBtagJets.mass", 
             "deterministic_seed", "pu_weight*", "btag_weight*", "cutflow.*",
-        } | {Route(f"FatJet.{x}") for x in ["btagHbb", "btagCSVV2", "btagDeepB", "deepTagMD_H4qvsQCD",
-                "deepTagMD_HbbvsQCD", "deepTagMD_ZHbbvsQCD", "deepTag_H",
-                "particleNetMD_Xbb", "particleNet_HbbvsQCD", "pt",]},
+        },
         "cf.MergeSelectionMasks": {
             "normalization_weight", "process_id", "category_ids", "cutflow.*",
         },
