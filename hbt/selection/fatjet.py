@@ -32,7 +32,7 @@ ak = maybe_import("awkward")
         "FatJet.jetId", "FatJet.subJetIdx1", "FatJet.subJetIdx2",
         "FatJet.*",
         "nSubJet", "SubJet.pt", "SubJet.eta", "SubJet.phi", "SubJet.mass", "SubJet.btagDeepB",
-        gen_HH_decay_product_idx,
+        # gen_HH_decay_product_idx,
     },
     
     # shifts are declared dynamically below in jet_selection_init
@@ -148,7 +148,7 @@ def fatjet_selection(
     # embed()
 
     #### TEMPORARY FIX: define gen b parton collection here
-    gen_b_parton_idx = self[gen_HH_decay_product_idx](events, **kwargs)
+    # gen_b_parton_idx = self[gen_HH_decay_product_idx](events, **kwargs)
     # build and return selection results plus new columns (src -> dst -> indices)
     return events, SelectionResult(
         steps={
@@ -166,19 +166,23 @@ def fatjet_selection(
         objects={
             "Jet": {
                 "Jet": jet_indices,
-                "FatJet": fatjet_indices,
-                "SubJet1": subjet_indices[..., 0],
-                "SubJet2": subjet_indices[..., 1],
                 ############ TODO Field FatJet with two btagged subjets
             },
-            "GenPart": {
-                "GenBpartonH": gen_b_parton_idx,
-            }
+            "FatJet": {
+                "FatJet": fatjet_indices,
+            },
+            "SubJet": {
+                "SubJet1": subjet_indices[..., 0],
+                "SubJet2": subjet_indices[..., 1],
+            },
+            # "GenPart": {
+            #     "GenBpartonH": gen_b_parton_idx,
+            # },
         },
         aux={
             # jet mask that lead to the jet_indices
             "jet_mask": default_mask,
-            "vanilla_fatjet_mask": vanilla_fatjet_mask,
+            "fatjet_mask": fatjet_mask,
             # used to determine sum of weights in increment_stats
             "n_central_jets": ak.num(jet_indices, axis=1),
         },
