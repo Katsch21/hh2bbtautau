@@ -38,7 +38,7 @@ def stylize_processes(config: od.Config) -> None:
         config.processes.n.graviton_hh_ggf_bbtautau_m1250.label = "m=1250"
 
     if config.has_process("graviton_hh_ggf_bbtautau_m1750"):
-        config.processes.n.graviton_hh_ggf_bbtautau_m1750.color1 = (240,228,66)
+        config.processes.n.graviton_hh_ggf_bbtautau_m1750.color1 = (230,0,35)#(213,94,0)
         config.processes.n.graviton_hh_ggf_bbtautau_m1750.unstack = True
         config.processes.n.graviton_hh_ggf_bbtautau_m1750.label = "m=1750"
 
@@ -48,7 +48,7 @@ def stylize_processes(config: od.Config) -> None:
         config.processes.n.graviton_hh_ggf_bbtautau_m2000.label = "m=2000"
 
     if config.has_process("graviton_hh_ggf_bbtautau_m2500"):
-        config.processes.n.graviton_hh_ggf_bbtautau_m2500.color1 = (213,94,0)
+        config.processes.n.graviton_hh_ggf_bbtautau_m2500.color1 = (240,228,66)
         config.processes.n.graviton_hh_ggf_bbtautau_m2500.unstack = True
         config.processes.n.graviton_hh_ggf_bbtautau_m2500.label = "m=2500"
 
