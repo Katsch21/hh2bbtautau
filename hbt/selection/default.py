@@ -161,7 +161,6 @@ def default(
     stats: defaultdict,
     **kwargs,
 ) -> tuple[ak.Array, SelectionResult]:
-    embed()
     # ensure coffea behavior
     events = self[attach_coffea_behavior](events, **kwargs)
 
