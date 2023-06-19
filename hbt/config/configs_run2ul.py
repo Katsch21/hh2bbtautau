@@ -201,6 +201,21 @@ def add_config(
         "boosted": ["trigger", "lepton", "boosted_jet_selector"]
     }
 
+    cfg.x.selector_step_labels = {
+        "fatjet_sel":r"$n_{jet}$<2",
+        "gen_matched":r"matched detector jets",
+        "gen_matching_hbb":r"matched and hbb selected",
+        "gen_matching_xbb":r"matched and xbb selected",
+        "gen_matched_1":r"$n_{matches} \geq 1$",
+        "first_matched":r"hardest jet matched",
+        "gen_matched_2":r"$n_{matches} \geq 2$",
+        "fatjet_sel_hbb_tagger_0_4":r"HHb tagger output > 0.4",
+        "fatjet_sel_hbb_tagger_0_6":r"HHb tagger output > 0.6",
+        "fatjet_sel_hbb_tagger_0_8":r"HHb tagger output > 0.8",
+        "fatjet_subjet_tagging_sel_loose":r"b-tagged Subjets (WP: loose)",
+        "fatjet_subjet_tagging_sel_medium":r"b-tagged Subjets (WP: medium)",
+        "fatjet_subjet_tagging_sel_tight":r"b-tagged Subjets (WP: tight)",
+    }
     # custom method and sandbox for determining dataset lfns
     cfg.x.get_dataset_lfns = None
     cfg.x.get_dataset_lfns_sandbox = None
@@ -665,7 +680,7 @@ def add_config(
             "MET.pt", "MET.phi", "MET.significance", "MET.covXX", "MET.covXY", "MET.covYY",
             "nGenPart", "GenPart.*", "nGenJet", 'GenJet.*','GenVisTau.*','nGenVisTau',
             "isHardProcess",
-            "GenBPartons.*", 
+            "GenBpartons.*","GenBPartons.*", 
             "GenBpartonH.*",
             "PV.npvs",
             ####################
@@ -682,13 +697,12 @@ def add_config(
             # deeptau
             "Tau.rawDeepTau2017v2p1VSe", "Tau.rawDeepTau2017v2p1VSjet", "Tau.rawDeepTau2017v2p1VSmu",
             # delta r boosted selection
-            # "delta_r_partons_boosted",
             # delta r plots
             "delta_r_2_matches", "delta_r_btag", "delta_r_HHbtag", "delta_r_genbpartons", "delta_r_genmatchedgenjets",
             "first_pt_2_matches", "first_pt_btag", "first_pt_genbpartons", "first_pt_genmatchedgenjets",
             "sum_pt_2_matches", "sum_pt_btag", "sum_pt_genbpartons", "sum_pt_genmatchedgenjets",
             # invariant mass bjets
-            "HHBJet_dijet_mass",
+            "HHBJet_dijet_mass", 
             # FatJet tagger hardest jet
             # columns added during selection
             "channel_id", "process_id", "category_ids", "mc_weight", "pdf_weight*", "murmuf_weight*",
