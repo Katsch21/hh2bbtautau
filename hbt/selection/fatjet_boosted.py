@@ -24,7 +24,7 @@ from hbt.selection.default import increment_stats
 from hbt.production.b_invariant_mass import invariant_mass_fatjets
 from hbt.production.gen_HH_decay import gen_HH_decay_products
 # from hbt.selection.genmatching import genmatching_selector
-from hbt.production.delta_r import delta_r, get_pt, genmatched_delta_r, partons_delta_r
+# from hbt.production.delta_r import delta_r, get_pt, genmatched_delta_r, partons_delta_r
 from IPython import embed
 
 np = maybe_import("numpy")
@@ -62,14 +62,14 @@ def print_efficiency(results, skip_steps_list1, skip_steps_list2, name_selection
     uses={boosted_jet_selector, lepton_selection, trigger_selection,
         process_ids, increment_stats, attach_coffea_behavior,
         btag_weights, pu_weight, mc_weight, pdf_weights, murmuf_weights,
-        cutflow_features, fatjet_selection, invariant_mass_fatjets, partons_delta_r, 
+        cutflow_features, fatjet_selection, invariant_mass_fatjets, # partons_delta_r, 
         fatjet_genmatching_selector,
         },
     produces={
         trigger_selection, lepton_selection, boosted_jet_selector,
         process_ids, increment_stats, attach_coffea_behavior,
         btag_weights, pu_weight, mc_weight, pdf_weights, murmuf_weights,
-        cutflow_features, fatjet_selection, invariant_mass_fatjets, partons_delta_r, 
+        cutflow_features, fatjet_selection, invariant_mass_fatjets, # partons_delta_r, 
         fatjet_genmatching_selector,
     },
     sandbox=dev_sandbox("bash::$HBT_BASE/sandboxes/venv_columnar_tf.sh"),
