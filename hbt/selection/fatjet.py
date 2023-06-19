@@ -11,7 +11,7 @@ from functools import reduce
 
 from columnflow.selection import Selector, SelectionResult, selector
 from columnflow.util import maybe_import
-from columnflow.columnar_util import set_ak_column
+from columnflow.columnar_util import set_ak_column, Route, EMPTY_FLOAT
 
 from hbt.production.gen_HH_decay import gen_HH_decay_product_idx
 from IPython import embed
@@ -29,7 +29,7 @@ ak = maybe_import("awkward")
         "nJet", "Jet.pt", "Jet.eta", "Jet.phi", "Jet.mass", "Jet.jetId", "Jet.puId",
         "Jet.btagDeepFlavB",
         "nFatJet", "FatJet.pt", "FatJet.eta", "FatJet.phi", "FatJet.mass", "FatJet.msoftdrop",
-        "FatJet.jetId", "FatJet.subJetIdx1", "FatJet.subJetIdx2",
+        "FatJet.jetId", "FatJet.subJetIdx1", "FatJet.subJetIdx2", "FatJet.particleNet_HbbvsQCD",
         "FatJet.*",
         "nSubJet", "SubJet.pt", "SubJet.eta", "SubJet.phi", "SubJet.mass", "SubJet.btagDeepB",
         # gen_HH_decay_product_idx,
@@ -132,10 +132,53 @@ def fatjet_selection(
         # ak.fill_none(subjets_btagged, True)  # was none for events with no matched fatjet
     )
 
-    fatjet_subjet_tagging_sel = (
-        (ak.sum(default_mask, axis=1) <= 1) # & ## #in original paper : >=2 # TODO
-        ####################### two subjets, btagged
+    # STEPS FOR FIRST SELECTION BEGIN HERE
+    # fatjet selection
+
+    hbb_tagger_indices = ak.argsort(Route("particleNet_HbbvsQCD[...]").apply(events.FatJet[fatjet_mask], EMPTY_FLOAT), ascending=False)
+    first_fatjet_hbb_tagger_score = Route("particleNet_HbbvsQCD[:,0]").apply(events.FatJet[fatjet_mask][hbb_tagger_indices], EMPTY_FLOAT)
+
+    fatjet_sel_hbb_tagger_0_4 = (
+        (ak.sum(default_mask, axis=1) <= 1) & ## #in original paper : >=2 # TODO
+        (first_fatjet_hbb_tagger_score > 0.4)  # was none for events with no matched fatjet
     )
+
+    fatjet_sel_hbb_tagger_0_6 = (
+        (ak.sum(default_mask, axis=1) <= 1) & ## #in original paper : >=2 # TODO
+        (first_fatjet_hbb_tagger_score > 0.6)  # was none for events with no matched fatjet
+    )
+
+    fatjet_sel_hbb_tagger_0_8 = (
+        (ak.sum(default_mask, axis=1) <= 1) & ## #in original paper : >=2 # TODO
+        (first_fatjet_hbb_tagger_score > 0.8)  # was none for events with no matched fatjet
+    )
+    # embed()
+
+# STEPS FOR SECOND SELECTION BEGIN HERE
+# subjet selection
+    wp_loose = self.config_inst.x.btag_working_points.deepcsv.loose
+    wp_medium = self.config_inst.x.btag_working_points.deepcsv.medium
+    wp_tight = self.config_inst.x.btag_working_points.deepcsv.tight
+
+    fatjet_subjet_tagging_sel_loose = (
+        (ak.sum(default_mask, axis=1) <= 1) & ## #in original paper : >=2 # TODO
+        ak.any((events.SubJet[events.FatJet[fatjet_mask].subJetIdx1].btagDeepB > wp_loose) & 
+               (events.SubJet[events.FatJet[fatjet_mask].subJetIdx2].btagDeepB > wp_loose), axis=1)
+               ####################### two subjets, btagged
+    )
+    fatjet_subjet_tagging_sel_medium = (
+        (ak.sum(default_mask, axis=1) <= 1) & ## #in original paper : >=2 # TODO
+        ak.any((events.SubJet[events.FatJet[fatjet_mask].subJetIdx1].btagDeepB > wp_medium) & 
+               (events.SubJet[events.FatJet[fatjet_mask].subJetIdx2].btagDeepB > wp_medium), axis=1)
+               ####################### two subjets, btagged
+    )
+    fatjet_subjet_tagging_sel_tight = (
+        (ak.sum(default_mask, axis=1) <= 1) & ## #in original paper : >=2 # TODO
+        ak.any((events.SubJet[events.FatJet[fatjet_mask].subJetIdx1].btagDeepB > wp_tight) & 
+               (events.SubJet[events.FatJet[fatjet_mask].subJetIdx2].btagDeepB > wp_tight), axis=1)
+               ####################### two subjets, btagged
+    )
+    # from IPython import embed; embed()
     ##############################  TODO
 
     # some final type conversions
@@ -145,15 +188,25 @@ def fatjet_selection(
     # store some columns
     # events = set_ak_column(events, "Jet.hhbtag", hhbtag_scores)
 
-    # embed()
 
     #### TEMPORARY FIX: define gen b parton collection here
     # gen_b_parton_idx = self[gen_HH_decay_product_idx](events, **kwargs)
     # build and return selection results plus new columns (src -> dst -> indices)
     return events, SelectionResult(
         steps={
+            # always include to get practical cutflow plots
             "fatjet_sel": fatjet_sel,
-            "fatjet_subjet_tagging_sel": fatjet_subjet_tagging_sel,
+            #
+            # version b
+            # "fatjet_sel_hbb_tagger_0_4": fatjet_sel_hbb_tagger_0_4,
+            # "fatjet_sel_hbb_tagger_0_6": fatjet_sel_hbb_tagger_0_6,
+            # "fatjet_sel_hbb_tagger_0_8": fatjet_sel_hbb_tagger_0_8,
+            #
+            # version a
+            # "fatjet_subjet_tagging_sel_loose": fatjet_subjet_tagging_sel_loose,
+            # "fatjet_subjet_tagging_sel_medium": fatjet_subjet_tagging_sel_medium,
+            # "fatjet_subjet_tagging_sel_tight": fatjet_subjet_tagging_sel_tight,
+            
             # "vanilla_fatjet": vanilla_fatjet_mask,
             # "subjet_match": subjets_match,
             # "fatjet_mask": fatjet_mask,
