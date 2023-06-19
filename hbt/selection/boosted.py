@@ -116,7 +116,7 @@ def boosted(
 
     events = self[gen_HH_decay_products](events, **kwargs)
 
-    events, genmatching_results = self[genmatching_selector](events, jet_collection=events.Jet, jet_results=jet_results)
+    events, genmatching_results = self[genmatching_selector](events, jet_collection=events.Jet[jet_results.x.jet_mask], jet_results=jet_results)
     results += genmatching_results
 
     print_efficiency(results, skip_steps_list1=["gen_matched_1","first_matched","gen_matched_2"], 
@@ -133,7 +133,7 @@ def boosted(
     
     print_efficiency(results, skip_steps_list1=["first_matched","gen_matched_2"], 
                      skip_steps_list2=["gen_matched_2"], name_selection1="gen_matched_1", 
-                     name_selection2="first_matched")
+                     name_selection2="first_matched") 
 
     event_sel = reduce(and_, results.steps.values())
     results.main["event"] = event_sel
