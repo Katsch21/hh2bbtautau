@@ -42,8 +42,6 @@ def default(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
 
     # features
     events = self[features](events, **kwargs)
-    from IPython import embed
-    embed()
 
     # mc-only weights
     if self.dataset_inst.is_mc:
