@@ -1,7 +1,7 @@
 # coding: utf-8
 
 """
-Selection methods.
+Default exposed selector.
 """
 
 from operator import and_

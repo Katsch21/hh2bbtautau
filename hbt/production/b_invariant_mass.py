@@ -20,6 +20,12 @@ set_ak_column_f32 = functools.partial(set_ak_column, value_type=np.float32)
 set_ak_column_i32 = functools.partial(set_ak_column, value_type=np.int32)
 
 def calculate_mass(array: ak.Array, n_objects: int=2):
+    """Calculates invariant mass of objects.
+
+    :param array: Objects for which the invariant mass should be calculated.
+    :param n_objects: Number of objects.
+    :return: Invariant mass.
+    """
     # now add the four momenta of the first two `Jet`s using the
     # `sum` function of coffea's LorentzVector class
     if n_objects > 1:
@@ -34,8 +40,6 @@ def calculate_mass(array: ak.Array, n_objects: int=2):
     # now add the new column to the array *events*. The column contains
     # the mass of the summed four momenta where there are at least
     # two jets, and the default value `EMPTY_FLOAT` otherwise.
-    # from IPython import embed
-    # embed()
     col = ak.where(dijet_mask, dijets.mass, EMPTY_FLOAT)
     return col
 
@@ -50,8 +54,10 @@ def calculate_mass(array: ak.Array, n_objects: int=2):
     },
 )
 def invariant_mass_hhbjet(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
-    """
-    Creates new column for the invariant mass of selected bjets.
+    """Creates new column for the invariant mass of selected bjets.
+
+    :param events: All events
+    :return: events with new column for invariant mass of jets.
     """
     # attach four momenta behavior for the field `Jet`
     # for more information see documentation of attach_coffea_behavior
@@ -80,8 +86,10 @@ def invariant_mass_hhbjet(self: Producer, events: ak.Array, **kwargs) -> ak.Arra
     },
 )
 def invariant_mass_fatjets(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
-    """
-    Creates new column for the invariant mass of selected bjets.
+    """Creates new column for the invariant mass of selected bjets.
+
+    :param events: all events
+    :return: Invariant mass of hardest fatjet
     """
     # attach four momenta behavior for the field `Jet`
     # for more information see documentation of attach_coffea_behavior

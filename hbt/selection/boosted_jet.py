@@ -1,5 +1,5 @@
 """
-Boosted Jet (Fat Jet) selection methods.
+Boosted Jet (Fatjet) selection methods.
 """
 
 from columnflow.selection import Selector, SelectionResult, selector
@@ -25,6 +25,10 @@ def boosted_jet_selector(
     lepton_results: SelectionResult,
     **kwargs,
 ) -> tuple[ak.Array, SelectionResult]:
+    """
+    Boosted jet selector, as an extension of the currently used
+    jet selector.
+    """
     # check whether the two bjets were matched by fatjet subjets to mark it as boosted
     fatjet_mask = (
         (events.FatJet.jetId == 6) &  # tight plus lepton veto
@@ -61,7 +65,6 @@ def boosted_jet_selector(
         (abs(events.Jet.eta) < 2.4)
     )
 
-
     return events, SelectionResult(
         steps={
             "fatjet": fatjet_event_selection,
@@ -78,7 +81,7 @@ def boosted_jet_selector(
             },
         },
         aux={
-            # jet mask that lead to the jet_indices
+            # jet mask that leads to the jet_indices
             "fatjet_mask": fatjet_mask,
             "jet_mask": default_jet_mask,
             # used to determine sum of weights in increment_stats

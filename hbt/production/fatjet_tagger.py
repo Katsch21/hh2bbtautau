@@ -2,8 +2,8 @@
 
 """
 Creates columns for different AK8 Jet discriminators X:
-    - HardestFatJet.X: Creates columns for discriminator value of hardest jet
-    - FirstFatJet.X: Creates columns for highest discriminator value 
+    HardestFatJet.X: Creates columns for discriminator value of hardest jet
+    FirstFatJet.X: Creates columns for highest discriminator value 
 """
 
 from columnflow.production import Producer, producer
@@ -29,6 +29,17 @@ ak = maybe_import("awkward")
 def fatjet_tagging_variables(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     """
     Creates columns for HardestFatJet.X and FirstFatJet.X
+    with X being the different tagging algorithms used fot H-> bb tagging,
+    HardestFatJet being the hardest AK8-jet and FirstFatjet being the AK8-jet
+    with the highest discriminator value.
+
+    :param events: all events
+    :return: events with new columns
+        HardestFatJet.X with X being the tagging algorithms
+        FirstFatjet.X with X being the tagging algorithms
+        HardestFatjet.Y with Y being pT, eta, phi
+        FirstFatjet.X.Y which corresponds to pT, eta, phi for
+        AK8-jet with highest discriminator value
     """
     # sort for fatjet pt
     

@@ -1,9 +1,14 @@
 # coding: utf-8
 
 """
-Jet selection methods.
-Every selection with TODO is changed to 0
-so that the number of jets that pass the filter does not change.
+Fatjet selection methods.
+The 'in original paper : >=2' parts show where the resolved jet selection requires two or more AK4-jets.
+This selection requires one or less AK4-jets in those three masks, which creates an orthogonal phase space.
+
+Two selection versions are implemented in this script:
+(a) fatjet tagging version
+(b) subjet tagging version
+To use a selection version, just comment the correct steps.
 """
 
 from operator import or_
@@ -45,13 +50,9 @@ def fatjet_selection(
     **kwargs,
 ) -> tuple[ak.Array, SelectionResult]:
     """
-    Jet selection based on ultra-legacy recommendations.
-
-    Resources:
-    https://twiki.cern.ch/twiki/bin/view/CMS/JetID?rev=107#nanoAOD_Flags
-    https://twiki.cern.ch/twiki/bin/view/CMS/JetID13TeVUL?rev=15#Recommendations_for_the_13_T_AN1
-    https://twiki.cern.ch/twiki/bin/view/CMS/PileupJetIDUL?rev=17
-    https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookNanoAOD?rev=100#Jets
+    Boosted jet selection, as an extension of the currently used
+    jet selection which is based on ultra-legacy recommendations.
+    A new phase space is created, being orthogonal to the jet selection one.
     """
     is_2016 = self.config_inst.campaign.x.year == 2016
 
@@ -111,7 +112,6 @@ def fatjet_selection(
         axis=2,
     )
 
-    # embed()
     # discard the event in case the (first) fatjet with matching subjets is found
     # but they are not b-tagged (TODO: move to deepjet when available for subjets)
     wp = self.config_inst.x.btag_working_points.deepcsv.loose
@@ -138,6 +138,7 @@ def fatjet_selection(
     hbb_tagger_indices = ak.argsort(Route("particleNet_HbbvsQCD[...]").apply(events.FatJet[fatjet_mask], EMPTY_FLOAT), ascending=False)
     first_fatjet_hbb_tagger_score = Route("particleNet_HbbvsQCD[:,0]").apply(events.FatJet[fatjet_mask][hbb_tagger_indices], EMPTY_FLOAT)
 
+    # masks for fatjet tagging version
     fatjet_sel_hbb_tagger_0_4 = (
         (ak.sum(default_mask, axis=1) <= 1) & ## #in original paper : >=2 # TODO
         (first_fatjet_hbb_tagger_score > 0.4)  # was none for events with no matched fatjet
@@ -152,10 +153,8 @@ def fatjet_selection(
         (ak.sum(default_mask, axis=1) <= 1) & ## #in original paper : >=2 # TODO
         (first_fatjet_hbb_tagger_score > 0.8)  # was none for events with no matched fatjet
     )
-    # embed()
 
-# STEPS FOR SECOND SELECTION BEGIN HERE
-# subjet selection
+    # masks for subjet tagging version
     wp_loose = self.config_inst.x.btag_working_points.deepcsv.loose
     wp_medium = self.config_inst.x.btag_working_points.deepcsv.medium
     wp_tight = self.config_inst.x.btag_working_points.deepcsv.tight
@@ -164,21 +163,25 @@ def fatjet_selection(
         (ak.sum(default_mask, axis=1) <= 1) & ## #in original paper : >=2 # TODO
         ak.any((events.SubJet[events.FatJet[fatjet_mask].subJetIdx1].btagDeepB > wp_loose) & 
                (events.SubJet[events.FatJet[fatjet_mask].subJetIdx2].btagDeepB > wp_loose), axis=1)
-               ####################### two subjets, btagged
+               # two subjets, btagged
+               # The line above selects all (ak.any) fatjets with two btagged subjets.
     )
     fatjet_subjet_tagging_sel_medium = (
         (ak.sum(default_mask, axis=1) <= 1) & ## #in original paper : >=2 # TODO
         ak.any((events.SubJet[events.FatJet[fatjet_mask].subJetIdx1].btagDeepB > wp_medium) & 
                (events.SubJet[events.FatJet[fatjet_mask].subJetIdx2].btagDeepB > wp_medium), axis=1)
-               ####################### two subjets, btagged
+               # two subjets, btagged
+               # The line above selects all (ak.any) fatjets with two btagged subjets.
     )
+
     fatjet_subjet_tagging_sel_tight = (
         (ak.sum(default_mask, axis=1) <= 1) & ## #in original paper : >=2 # TODO
         ak.any((events.SubJet[events.FatJet[fatjet_mask].subJetIdx1].btagDeepB > wp_tight) & 
                (events.SubJet[events.FatJet[fatjet_mask].subJetIdx2].btagDeepB > wp_tight), axis=1)
-               ####################### two subjets, btagged
+               # two subjets, btagged
+               # The line above selects all (ak.any) fatjets with two btagged subjets.
     )
-    # from IPython import embed; embed()
+
     ##############################  TODO
 
     # some final type conversions

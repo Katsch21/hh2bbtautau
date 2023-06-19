@@ -1,5 +1,7 @@
 """
 Selection methods for a AK8 (FatJet) Gen Matching.
+Two Gen matchins are implemented: one using the hbb tagger and one using the xbb tagger from particlenet.
+Therefore, to analzyse Gen matching steps, comment either 'gen_matching_hbb' or 'gen_matching_xbb'
 """
 
 from columnflow.selection import Selector, SelectionResult, selector
@@ -34,6 +36,17 @@ def fatjet_genmatching_selector(
     fatjet_results: SelectionResult,
     **kwargs,
 ) -> tuple[ak.Array, SelectionResult]:
+    """
+    Fatjet Gen Matching.
+    The two Gen Partons are separately matched to two Gen Fatjets.
+    Then, the two Gen matched Gen Fatjets are compared.
+    Then, the matching to a Detector Fatjet follows.
+    Last, the detector fatjet is compared to the fatjet with the highest Hbbtag score who passed the selection.
+
+    :param events: all events
+    :param fatjet_results: selection result from fatjet selection
+    :return: events with new columns
+    """
     gen_b_parton_idx = self[gen_HH_decay_product_idx](events, **kwargs)
 
     def find_fatjet_indices(array1: ak.Array, array2: ak.Array, threshold: float):
@@ -51,18 +64,22 @@ def fatjet_genmatching_selector(
         genjet_indices = ak.firsts(minimum_deltar_indices.mask[metric <= threshold], axis=2)
         return genjet_indices
 
+    # separately match the two Gen Partons to two Gen Jets
     genmatchedgenfatjets_indices_2_entries = find_fatjet_indices(array1 = events.GenPart[gen_b_parton_idx], array2 = events.GenJetAK8, threshold=0.8)
+    # Compare both
     genmatchedgenfatjets_indices=ak.mask(genmatchedgenfatjets_indices_2_entries[:,0],genmatchedgenfatjets_indices_2_entries[:,0]==genmatchedgenfatjets_indices_2_entries[:,1])[..., np.newaxis]
     genmatchedfatjets_indices = find_fatjet_indices(array1 = events.GenJetAK8[genmatchedgenfatjets_indices], array2 = events.FatJet, threshold=0.8)
-
+    # get fatjet selection results
     selected_fatjet_indices = fatjet_results.objects.FatJet.FatJet
-    # embed()
+    # Hbb tagged fatjet results
     selected_hbb_tagged_fatjet_index = selected_fatjet_indices[ak.argsort(events.FatJet[selected_fatjet_indices].particleNet_HbbvsQCD, axis=1, ascending=False)]
     selected_xbb_tagged_fatjet_index = selected_fatjet_indices[ak.argsort(events.FatJet[selected_fatjet_indices].particleNetMD_Xbb, axis=1, ascending=False)]
     padded_selected_hbb_tagged_fatjet_index=ak.pad_none(selected_hbb_tagged_fatjet_index,1,axis=1)
     padded_selected_xbb_tagged_fatjet_index=ak.pad_none(selected_xbb_tagged_fatjet_index,1,axis=1)
+    # get indices
     hbb_tagged_fatjet_index=padded_selected_hbb_tagged_fatjet_index[:, 0][..., np.newaxis]
     xbb_tagged_fatjet_index=padded_selected_xbb_tagged_fatjet_index[:, 0][..., np.newaxis]
+    # selected and matched: last gen matching step 
     selected_and_matched_hbb=ak.fill_none(genmatchedfatjets_indices==hbb_tagged_fatjet_index, False)
     selected_and_matched_xbb=ak.fill_none(genmatchedfatjets_indices==xbb_tagged_fatjet_index, False)
 

@@ -1,3 +1,7 @@
+"""
+Exposed boosted jet selector.
+"""
+
 from columnflow.selection import Selector, SelectionResult, selector
 from columnflow.util import maybe_import, dev_sandbox
 from columnflow.production.processes import process_ids
