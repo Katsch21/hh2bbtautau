@@ -23,7 +23,7 @@ ak = maybe_import("awkward")
         gen_HH_decay_products.PRODUCES, gen_HH_decay_product_idx,
     },
     produces={
-        "AK8_GenmatchedJets", "AK8_GenmatchedHHBtagJets", "AK8_GenBPartons",
+        "AK8_GenmatchedJets", "AK8_GenmatchedHHBtagJets", "AK8_GenBPartons", "GenBpartons",
         "GenmatchedGenFatJets", "GenmatchedFatJets", "GenmatchedHBBFatJets", "GenmatchedXBBFatJets",
     },
     sandbox=dev_sandbox("bash::$HBT_BASE/sandboxes/venv_columnar.sh"),
@@ -69,15 +69,15 @@ def fatjet_genmatching_selector(
     return events, SelectionResult(
     steps={
         #Gen Matching Steps
-        "gen_matched": ak.fill_none(ak.where(ak.firsts(genmatchedfatjets_indices)>=0, True, False), False),
-        "gen_matching_hbb": ak.firsts(selected_and_matched_hbb)
-        #"gen_matching_xbb":ak.firsts(selected_and_matched_xbb),
+        # "gen_matched": ak.fill_none(ak.where(ak.firsts(genmatchedfatjets_indices)>=0, True, False), False),
+        # "gen_matching_hbb": ak.firsts(selected_and_matched_hbb),
+        # "gen_matching_xbb":ak.firsts(selected_and_matched_xbb),
         },
     objects={
         "GenPart":{
             "GenBpartons": gen_b_parton_idx, # Gen Partons (before matching)
         },
-        "GenJet":{
+        "GenJetAK8":{
             "GenmatchedGenFatJets": genmatchedgenfatjets_indices # Gen Jets (Matching step 1)
         },
         "FatJet":{ 
