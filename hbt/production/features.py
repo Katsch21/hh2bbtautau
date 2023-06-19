@@ -11,6 +11,7 @@ from columnflow.production.categories import category_ids
 from columnflow.production.cms.mc_weight import mc_weight
 from columnflow.util import maybe_import
 from columnflow.columnar_util import EMPTY_FLOAT, Route, set_ak_column
+from hbt.production.fatjet_tagger import fatjet_tagging_variables
 from IPython import embed
 
 
@@ -44,7 +45,7 @@ def features(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
 
 @producer(
     uses={
-        mc_weight, category_ids,
+        mc_weight, category_ids,fatjet_tagging_variables,
         # nano columns
         "Jet.pt", "Jet.eta", "Jet.phi", 
         # btags:
@@ -66,6 +67,8 @@ def features(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         "cutflow.rawDeepTau2017v2p1VSe2", "cutflow.rawDeepTau2017v2p1VSjet2", "cutflow.rawDeepTau2017v2p1VSmu2",
         # fatjets
         "cutflow.fatJet1.btagHbb", "cutflow.fatJet1.btagDeepb", "cutflow.fatJet2.btagHbb", "cutflow.fatJet2.btagDeepb", 
+        # fatjet tagger output
+        "cutflow.HardestFatJet.particleNet_HbbvsQCD", "cutflow.HardestFatJet.particleNetMD_Xbb", "cutflow.HardestFatJet.pt",
     },
 )
 def cutflow_features(
@@ -129,4 +132,11 @@ def cutflow_features(
     events = set_ak_column_f32(events, "cutflow.fatJet1.btagDeepb", ak.sort(btagDeepb_padded, axis=1, ascending=False)[:,0])
     events = set_ak_column_f32(events, "cutflow.fatJet2.btagHbb", ak.sort(btagHbb_padded, axis=1, ascending=False)[:,1])
     events = set_ak_column_f32(events, "cutflow.fatJet2.btagDeepb", ak.sort(btagDeepb_padded, axis=1, ascending=False)[:,1])
+
+
+    events = self[fatjet_tagging_variables](events)
+    events = set_ak_column_f32(events, "cutflow.HardestFatJet.particleNet_HbbvsQCD", events.HardestFatJet.particleNet_HbbvsQCD)
+    events = set_ak_column_f32(events, "cutflow.HardestFatJet.particleNetMD_Xbb", events.HardestFatJet.particleNet_HbbvsQCD)
+    events = set_ak_column_f32(events, "cutflow.HardestFatJet.pt", events.HardestFatJet.particleNet_HbbvsQCD)
+
     return events
