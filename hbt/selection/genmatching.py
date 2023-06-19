@@ -60,6 +60,10 @@ def genmatching_selector(
     
     mmin = ak.firsts(mmin.mask[metric <= 0.4], axis=2)
 
+    jet_indices=ak.local_index(events.Jet)
+    jet_indices_selected=jet_indices[jet_results.x.jet_mask]
+    mmin=jet_indices_selected[mmin]
+
      # filter unmatched cases !!DO NOT FILTER THEM, it destroys indices/order!
     # unmatched_jets = ak.is_none(nearest_jets_to_genjets.pt, axis=1)
     # genmatched jets (not the indices, but the objects):
@@ -128,9 +132,9 @@ def genmatching_selector(
     return events, SelectionResult(
     steps={
         # Gen Matching Steps
-        "gen_matched_1":at_least_one_jet_matched_event_selection,
-        "first_matched":first_jet_matched_event_selection,
-        "gen_matched_2":two_jet_matched_event_selection,
+        # "gen_matched_1":at_least_one_jet_matched_event_selection,
+        # "first_matched":first_jet_matched_event_selection,
+        # "gen_matched_2":two_jet_matched_event_selection,
         },
     objects={
         "GenPart":{
