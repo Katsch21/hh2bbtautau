@@ -98,20 +98,57 @@ def add_variables(config: od.Config) -> None:
         x_title=r"DeepJet b+bb+lepb tag discriminator "
     )
 
+    # fatjet genmatching
+    config.add_variable(
+        name="GenmatchedGenFatJets_pt",
+        expression="GenmatchedGenFatJets.pt",
+        null_value=EMPTY_FLOAT,
+        binning=(20, 0, 1000),
+        x_title=r"pt of GenmatchedGenFatJets"
+    )
+    config.add_variable(
+        name="GenmatchedFatJets_pt",
+        expression="GenmatchedFatJets.pt",
+        null_value=EMPTY_FLOAT,
+        binning=(20, 0, 1000),
+        x_title=r"pt of GenmatchedFatJets"
+    )
+    config.add_variable(
+        name="GenmatchedHBBFatJets_pt",
+        expression="GenmatchedHBBFatJets.pt",
+        null_value=EMPTY_FLOAT,
+        binning=(20, 0, 1000),
+        x_title=r"pt of GenmatchedHBBFatJets"
+    )
+    config.add_variable(
+        name="GenmatchedXBBFatJets_pt",
+        expression="GenmatchedXBBFatJets.pt",
+        null_value=EMPTY_FLOAT,
+        binning=(20, 0, 1000),
+        x_title=r"pt of GenmatchedXBBFatJets"
+    )
 
     config.add_variable(
-        name="GenmatchedFatJets",
-        expression="GenmatchedFatJets",
+        name="GenmatchedHBBFatJets_hbbtagger",
+        expression="GenmatchedHBBFatJets.particleNet_HbbvsQCD",
         null_value=EMPTY_FLOAT,
-        binning=(25, 0, 270),
-        x_title=r"GenmatchedFatJets"
+        binning=(12, 0, 1),
+        x_title=r"particleNet_HbbvsQCD output for GenmatchedHBBFatJets"
     )
+    config.add_variable(
+        name="GenmatchedXBBFatJets_xbbtagger",
+        expression="GenmatchedHBBFatJets.particleNetMD_Xbb",
+        null_value=EMPTY_FLOAT,
+        binning=(12, 0, 1),
+        x_title=r"particleNet_HbbvsQCD output for GenmatchedHBBFatJets"
+    )
+
     # fatjet tagger: highest pt
     config.add_variable(
         name="HardestFatJet.mass",
         expression="HardestFatJet.mass",
         null_value=EMPTY_FLOAT,
-        binning=(25, 0, 270),
+        binning=(20, 0, 270),
         x_title=r"Mass of hardest AK8 jet"
     )
     config.add_variable(
@@ -255,7 +292,14 @@ def add_variables(config: od.Config) -> None:
         expression="FirstFatJet.pt",
         null_value=EMPTY_FLOAT,
         binning=(15, 0, 1000),
-        x_title=r"pt of hardest jet"
+        x_title=r"pt of jet with highest btag output"
+    )
+    config.add_variable(
+        name="FirstFatJet_particleNet_HbbvsQCD.mass",
+        expression="FirstFatJet_particleNet_HbbvsQCD.mass",
+        null_value=EMPTY_FLOAT,
+        binning=(50, 0, 250),
+        x_title=r"invariant mass of jet with highest btag output"
     )
     #############################
 
@@ -280,7 +324,7 @@ def add_variables(config: od.Config) -> None:
         name="delta_r_partons_boosted",
         expression="delta_r_partons_boosted",
         null_value=EMPTY_FLOAT,
-        binning=(20, 0, 1.5),
+        binning=(15, 0, 1.5),
         x_title=r"Delta R of two Gen Partons, boosted selection"
     )
 
@@ -289,29 +333,29 @@ def add_variables(config: od.Config) -> None:
         name="delta_r_genbpartons",
         expression="delta_r_genbpartons",
         null_value=EMPTY_FLOAT,
-        binning=(20, 0, 1.5),
+        binning=(20, 0, 1.6),
         x_title=r"Delta R of two Gen Partons"
     )
     config.add_variable(
         name="delta_r_genmatchedgenjets",
         expression="delta_r_genmatchedgenjets",
         null_value=EMPTY_FLOAT,
-        binning=(20, 0, 1.5),
-        x_title=r"Delta R of two Gen Jets"
+        binning=(50, 0, 1.6),
+        x_title=r"Delta R of two Gen matched Gen Jets"
     )
     config.add_variable(
         name="delta_r_2_matches",
         expression="delta_r_2_matches",
         null_value=EMPTY_FLOAT,
-        binning=(20, 0, 1.5),
-        x_title=r"Delta R of two Detector Jets"
+        binning=(50, 0, 1.6),
+        x_title=r"Delta R of two Gen matched Detector Jets"
     )
     config.add_variable(
         name="delta_r_HHbtag",
         expression="delta_r_HHbtag",
         null_value=EMPTY_FLOAT,
-        binning=(20, 0, 1.5),
-        x_title=r"Delta R of two Matched and Selected jets"
+        binning=(50, 0, 1.6),
+        x_title=r"Delta R of two Matched and Selected Detector jets"
     )
     # pt of first matched jet:
     # 1D plots 20 bins, 2D plots 50 bins
@@ -320,57 +364,57 @@ def add_variables(config: od.Config) -> None:
         expression="first_pt_genbpartons",
         null_value=EMPTY_FLOAT,
         binning=(20, 0.0, 1000.0),
-        x_title=r"pt of first Gen Parton"
+        x_title=r"pt of first Gen Parton (GeV)"
     )
     config.add_variable(
         name="first_pt_genmatchedgenjets",
         expression="first_pt_genmatchedgenjets",
         null_value=EMPTY_FLOAT,
         binning=(20, 0.0, 1000.0),
-        x_title=r"pt of first Gen Jet"
+        x_title=r"pt of first Gen matched Gen Jet (GeV)"
     )
     config.add_variable(
         name="first_pt_2_matches",
         expression="first_pt_2_matches",
         null_value=EMPTY_FLOAT,
         binning=(20, 0.0, 1000.0),
-        x_title=r"pt of first Detector Jet"
+        x_title=r"pt of first Gen matched Detector Jet (GeV)"
     )
     config.add_variable(
         name="first_pt_btag",
         expression="first_pt_btag",
         null_value=EMPTY_FLOAT,
         binning=(20, 0.0, 1000.0),
-        x_title=r"pt of first Gen Matched and Selected jet"
+        x_title=r"pt of first Gen Matched and Selected Detector jet (GeV)"
     )
     # pt sum of both matched jets:
     config.add_variable(
         name="sum_pt_genbpartons",
         expression="sum_pt_genbpartons",
         null_value=EMPTY_FLOAT,
-        binning=(20, 0.0, 1000.0),
-        x_title=r"sum: pt of first 2 Gen Partons"
+        binning=(20, 0.0, 1200.0),
+        x_title=r"sum:pt of first 2 Gen Partons (GeV)"
     )
     config.add_variable(
         name="sum_pt_genmatchedgenjets",
         expression="sum_pt_genmatchedgenjets",
         null_value=EMPTY_FLOAT,
-        binning=(20, 0.0, 1000.0),
-        x_title=r"sum: pt of first 2 Gen Jets"
+        binning=(50, 0.0, 1200.0),
+        x_title=r"sum:pt of first 2 Gen matched Gen Jets (GeV)"
     )
     config.add_variable(
         name="sum_pt_2_matches",
         expression="sum_pt_2_matches",
         null_value=EMPTY_FLOAT,
-        binning=(20, 0.0, 1000.0),
-        x_title=r"sum: pt of first 2 Detector Jets"
+        binning=(50, 0.0, 1200.0),
+        x_title=r"sum:pt of first 2 Gen matched Detector Jets (GeV)"
     )
     config.add_variable(
         name="sum_pt_btag",
         expression="sum_pt_btag",
         null_value=EMPTY_FLOAT,
-        binning=(20, 0.0, 1000.0),
-        x_title=r"sum: pt of first 2 Matched and Selected jets"
+        binning=(20, 0.0, 1200.0),
+        x_title=r"sum:pt of first 2 Matched and Selected Det. jets (GeV)"
     )
 
     # fatjets:
@@ -591,21 +635,21 @@ def add_variables(config: od.Config) -> None:
             name="cf_HardestFatJet.particleNet_HbbvsQCD",
             expression="cutflow.HardestFatJet.particleNet_HbbvsQCD",
             null_value=EMPTY_FLOAT,
-            binning=(100, 0, 1),
+            binning=(30, 0, 1),
             x_title=r"particleNet_HbbvsQCD discriminator of hardest fatjet"
         )
     config.add_variable(
             name="cf_HardestFatJet.particleNetMD_Xbb",
             expression="cutflow.HardestFatJet.particleNetMD_Xbb",
             null_value=EMPTY_FLOAT,
-            binning=(100, 0, 1),
+            binning=(30, 0, 1),
             x_title=r"particleNetMD_Xbb discriminator of hardest fatjet"
         )
     config.add_variable(
             name="cf_HardestFatJet.pt",
             expression="cutflow.HardestFatJet.pt",
             null_value=EMPTY_FLOAT,
-            binning=(100, 0, 1),
+            binning=(30, 0, 1),
             x_title=r"pt of hardest fatjet"
         )
 
