@@ -36,8 +36,13 @@ ak = maybe_import("awkward")
 
 
 def print_efficiency(results, skip_steps_list1, skip_steps_list2, name_selection1, name_selection2):
-    """
-    calculate and print efficiency between two selections, given by the steps to skip in results
+    """calculate and print efficiency between two selections, given by the steps to skip in results
+
+    :param results: results from selection step.
+    :param skip_steps_list1: selection steps not used for calculating n_events 1
+    :param skip_steps_list2: selection steps not used for calculating n_events 2
+    :param name_selection1: Name for first selection
+    :param name_selection2: Name for second selection
     """
     results_reduced1 = reduce(
         and_,

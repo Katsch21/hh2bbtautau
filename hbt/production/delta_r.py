@@ -181,6 +181,12 @@ def partons_delta_r(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     events = self[attach_coffea_behavior](events, collections=collections, **kwargs)
     
     def calculate_delta_r(array: ak.Array, num_objects: int=2):
+        """_summary_
+
+        :param array: Objects from which to calculate delta R
+        :param num_objects: Number of objects, defaults to 2
+        :return: delta R
+        """
         # calculate all possible delta R values (all permutations):
         all_deltars = array.metric_table(array)
         min_deltars_permutations = ak.firsts(all_deltars)
@@ -193,12 +199,8 @@ def partons_delta_r(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         # new_mask = ak.is_none(real_deltars_filled)
         real_deltars_filled_axiszero = ak.fill_none(real_deltars_filled, [0], axis=0)
         mask = ak.num(array, axis=1) == num_objects
-        # embed()
-        # from IPython import embed
-        # embed()
         return ak.where(mask, ak.flatten(real_deltars_filled_axiszero), EMPTY_FLOAT)
     
-    #embed()
     events = set_ak_column_f32(events, "delta_r_partons_boosted", calculate_delta_r(events.GenBpartons)[...,np.newaxis])
 
     return events

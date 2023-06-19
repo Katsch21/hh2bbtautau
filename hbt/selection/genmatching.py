@@ -34,6 +34,17 @@ def genmatching_selector(
     jet_results: SelectionResult,
     **kwargs,
 ) -> tuple[ak.Array, SelectionResult]:
+    """
+    Gen Matching.
+    The Gen Partons are matched to Gen Jets. (GenmatchedGenJets)
+    Then, Gen Jets are matched to Detector Jets. (GenmatchedJets)
+    In the last step, Detector Jets are compared to Detector Jets that passed the jet selection and HHb tagger. (GenmatchedHHBtagJets)
+    All Gen Matching steps are pT-sorted.
+
+    :param events: all events.
+    :param jet_collection: events that passed the jet selection.
+    :return: events with new columns for the Gen matching steps.
+    """
     
     # match genJets to genPartons from H
     # get GenJets with b as partonFlavour
@@ -64,7 +75,7 @@ def genmatching_selector(
     jet_indices_selected=jet_indices[jet_results.x.jet_mask]
     mmin=jet_indices_selected[mmin]
 
-     # filter unmatched cases !!DO NOT FILTER THEM, it destroys indices/order!
+    # filter unmatched cases !!DO NOT FILTER THEM, it destroys indices/order!
     # unmatched_jets = ak.is_none(nearest_jets_to_genjets.pt, axis=1)
     # genmatched jets (not the indices, but the objects):
     # matched_jets_to_genjets = nearest_jets_to_genjets[~unmatched_jets]
@@ -93,9 +104,12 @@ def genmatching_selector(
     # get indices for plotting genmatching steps:
     
     def find_genjet_indices(array1: ak.Array, array2: ak.Array):
-        """
-        calculates indices of jets of a specific genmatching step
+        """calculates indices of jets of a specific genmatching step
         in which array1 is matched to array2.
+
+        :param array1: First simulation step.
+        :param array2: Second simullation step.
+        :return: indices of genmatched jets, where array1 was matched to array2.
         """
         # calculate delta R between jets:
         metrics_genjets = array1.metric_table(array2, axis=1)
@@ -114,6 +128,13 @@ def genmatching_selector(
     genmatchedjets_indices = find_genjet_indices(array1 = nearest_genjet_to_parton, array2 = jet_collection)
 
     def find_partons_id(events: ak.Array, pdgId: int, mother_pdgId: int=25):
+        """Gets the indices of partons of a chosen flavour and a chosen mother particle.
+
+        :param events: all events
+        :param pdgId: Pdg Id of parton flavour
+        :param mother_pdgId: Pdg Id of mother particle defaults to 25
+        :return: Id of partons
+        """
         abs_id = abs(events.GenPart.pdgId)
         part_id=ak.local_index(events.GenPart, axis=1)
         part = events.GenPart[abs_id == pdgId]
@@ -121,7 +142,6 @@ def genmatching_selector(
         part_id = part_id[part.hasFlags("isHardProcess")& (abs(part.distinctParent.pdgId) == mother_pdgId)]
         part = part[part.hasFlags("isHardProcess")& (abs(part.distinctParent.pdgId) == mother_pdgId)]
         part_id = part_id[~ak.is_none(part, axis=1)]
-        # embed()
         return part_id
 
     part_id = find_partons_id(events, pdgId=5, mother_pdgId=25)

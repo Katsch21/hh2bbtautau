@@ -1,5 +1,5 @@
 """
-Exposed boosted jet selector.
+Exposed boosted jet selector. Equivalent to the resolved 'boosted.py' selector.
 """
 
 from columnflow.selection import Selector, SelectionResult, selector

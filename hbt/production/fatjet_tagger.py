@@ -41,10 +41,10 @@ def fatjet_tagging_variables(self: Producer, events: ak.Array, **kwargs) -> ak.A
         FirstFatjet.X.Y which corresponds to pT, eta, phi for
         AK8-jet with highest discriminator value
     """
+
     # sort for fatjet pt
-    
     pt_indices = ak.argsort(events.FatJet.pt, axis=1, ascending=False)
-    # embed()
+
     for var in self.fatjet_observables:
         var_indices = ak.argsort(Route(f"{var}[...]").apply(events.FatJet, EMPTY_FLOAT), ascending=False)
         events = set_ak_column(

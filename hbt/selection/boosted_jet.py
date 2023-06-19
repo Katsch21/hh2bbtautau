@@ -25,9 +25,13 @@ def boosted_jet_selector(
     lepton_results: SelectionResult,
     **kwargs,
 ) -> tuple[ak.Array, SelectionResult]:
-    """
-    Boosted jet selector, as an extension of the currently used
+    """Boosted jet selector, as an extension of the currently used
     jet selector.
+
+    :param events: all events
+    :param trigger_results: Results from trigger selection.
+    :param lepton_results: Results from lepton selection.
+    :return: events
     """
     # check whether the two bjets were matched by fatjet subjets to mark it as boosted
     fatjet_mask = (
